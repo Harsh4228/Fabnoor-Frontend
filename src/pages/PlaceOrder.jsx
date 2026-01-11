@@ -90,7 +90,7 @@ const PlaceOrder = () => {
 
       if (!items.length) {
         alert("Cart is empty");
-        setLoading(false); // ✅ FIX
+        setLoading(false);
         return;
       }
 
@@ -173,84 +173,134 @@ const PlaceOrder = () => {
   };
 
   return (
-    <form
-      onSubmit={onSubmitHandler}
-      className="flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t"
-    >
-      {/* LEFT */}
-      <div className="flex flex-col gap-4 w-full sm:max-w-[480px]">
-        <div className="text-xl sm:text-2xl my-3">
-          <Title text1="DELIVERY" text2="INFORMATION" />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 pt-5 sm:pt-14">
+      <div className="container mx-auto px-4 md:px-8">
+        <div className="flex flex-col lg:flex-row justify-between gap-8">
+          
+          {/* LEFT - Delivery Information */}
+          <div className="flex-1 max-w-2xl">
+            <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
+              <div className="text-2xl sm:text-3xl mb-6">
+                <Title text1="DELIVERY" text2="INFORMATION" />
+              </div>
 
-        {[
-          ["firstName", "First name"],
-          ["lastName", "Last name"],
-          ["email", "E-mail address"],
-          ["street", "Street"],
-          ["city", "City"],
-          ["state", "State"],
-          ["pinCode", "Pin Code"],
-          ["country", "Country"],
-          ["phone", "Phone"],
-        ].map(([name, placeholder]) => (
-          <input
-            key={name}
-            required
-            name={name}
-            value={formData[name]}
-            onChange={onChangeHandler}
-            className="border border-gray-300 rounded py-1.5 px-3.5 w-full"
-            placeholder={placeholder}
-          />
-        ))}
-      </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  ["firstName", "First name"],
+                  ["lastName", "Last name"],
+                ].map(([name, placeholder]) => (
+                  <input
+                    key={name}
+                    required
+                    name={name}
+                    value={formData[name]}
+                    onChange={onChangeHandler}
+                    className="border-2 border-gray-200 rounded-lg py-3 px-4 w-full focus:outline-none focus:border-pink-500 transition"
+                    placeholder={placeholder}
+                  />
+                ))}
+              </div>
 
-      {/* RIGHT */}
-      <div className="mt-8">
-        <CartTotal />
-
-        <div className="mt-12">
-          <Title text1="PAYMENT" text2="METHOD" />
-
-          <div className="flex gap-3 mt-4">
-            <div
-              onClick={() => setMethod("razorpay")}
-              className={`border p-3 cursor-pointer ${
-                method === "razorpay" ? "bg-gray-100" : ""
-              }`}
-            >
-              <img className="h-5" src={assets.razorpay_logo} alt="" />
-            </div>
-
-            <div
-              onClick={() => setMethod("cod")}
-              className={`border p-3 cursor-pointer ${
-                method === "cod" ? "bg-gray-100" : ""
-              }`}
-            >
-              CASH ON DELIVERY
+              <div className="space-y-4 mt-4">
+                {[
+                  ["email", "E-mail address"],
+                  ["street", "Street address"],
+                  ["city", "City"],
+                  ["state", "State"],
+                  ["pinCode", "Pin Code"],
+                  ["country", "Country"],
+                  ["phone", "Phone number"],
+                ].map(([name, placeholder]) => (
+                  <input
+                    key={name}
+                    required
+                    name={name}
+                    value={formData[name]}
+                    onChange={onChangeHandler}
+                    className="border-2 border-gray-200 rounded-lg py-3 px-4 w-full focus:outline-none focus:border-pink-500 transition"
+                    placeholder={placeholder}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="w-full text-end mt-8">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-black text-white px-16 py-3 text-sm"
-            >
-              {loading ? (
-                <span className="flex gap-2 items-center">
-                  <FaSpinner className="animate-spin" /> Placing Order
-                </span>
-              ) : (
-                "PLACE ORDER"
-              )}
-            </button>
+          {/* RIGHT - Cart Total & Payment */}
+          <div className="flex-1 max-w-lg">
+            <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100 sticky top-24">
+              <CartTotal />
+
+              <div className="mt-8">
+                <div className="mb-4">
+                  <Title text1="PAYMENT" text2="METHOD" />
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => setMethod("razorpay")}
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${
+                      method === "razorpay" 
+                        ? "border-pink-500 bg-pink-50" 
+                        : "border-gray-200 hover:border-pink-300"
+                    }`}
+                  >
+                    <img className="h-6" src={assets.razorpay_logo} alt="Razorpay" />
+                    {method === "razorpay" && (
+                      <svg className="w-5 h-5 text-pink-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMethod("cod")}
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold ${
+                      method === "cod" 
+                        ? "border-pink-500 bg-pink-50 text-pink-600" 
+                        : "border-gray-200 text-gray-700 hover:border-pink-300"
+                    }`}
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    CASH ON DELIVERY
+                    {method === "cod" && (
+                      <svg className="w-5 h-5 text-pink-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+
+                <div className="mt-8">
+                  <button
+                    onClick={onSubmitHandler}
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white px-8 py-4 rounded-xl text-base font-semibold hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                  >
+                    {loading ? (
+                      <>
+                        <FaSpinner className="animate-spin" />
+                        <span>Placing Order...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>PLACE ORDER</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </form>
+    </div>
   );
 };
 

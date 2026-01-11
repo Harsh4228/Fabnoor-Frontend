@@ -17,6 +17,7 @@ export const ShopContextProvider = ({ children }) => {
     const saved = localStorage.getItem("cartItems");
     return saved ? JSON.parse(saved) : {};
   });
+  
 
   const [products, setProducts] = useState([]);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -93,6 +94,7 @@ export const ShopContextProvider = ({ children }) => {
         item.productId?._id === productId &&
         item.color === color &&
         item.size === size
+        // item.type === type
     );
   };
 
@@ -151,6 +153,7 @@ export const ShopContextProvider = ({ children }) => {
           price: Number(found.price),
           image: variant.images?.[0] || "",
           color: variant.color,
+          type: variant.type,
         };
       }
     }

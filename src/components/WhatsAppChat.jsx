@@ -16,15 +16,13 @@ const WhatsAppChat = () => {
       rel="noopener noreferrer"
       className="fixed bottom-5 right-5 z-50"
     >
-      <div className="flex items-center gap-2 bg-green-500 text-white px-4 py-3 rounded-full shadow-lg hover:bg-green-600 transition">
+      <div className="flex items-center gap-2 bg-green-500 text-white px-4 py-4 rounded-full shadow-lg hover:bg-green-600 transition">
         <img
           src={assets.whatsapp_icon}
           alt="WhatsApp"
           className="w-6 h-6"
         />
-        <span className="hidden sm:block font-medium">
-          Chat with us
-        </span>
+        
       </div>
     </a>
   );

@@ -4,12 +4,24 @@
 @tailwind components;
 @tailwind utilities;
 
-a.active hr{
-    display:block;
+/* ================= GLOBAL ================= */
+
+* {
+  font-family: Outfit;
 }
 
-*{
-    font-family:Outfit;
+.prata-regular {
+  font-family: "Prata", serif;
+}
+
+/* Active nav underline */
+a.active hr {
+  display: block;
+}
+
+/* Hide scrollbar */
+::-webkit-scrollbar {
+  display: none;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -19,18 +31,10 @@ a.active hr{
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.prata-regular {
-    font-family: "Prata", serif;
-    font-weight: 400;
-    font-style: normal;
-  }
-  ::-webkit-scrollbar{
-    display: none;
-  }
 
-@media(max-width:640px){
-    a.active{
-        background-color: black;
-        color: white;
-    }
-}  
+@media (max-width: 640px) {
+  a.active {
+    background-color: black;
+    color: white;
+  }
+}
