@@ -73,12 +73,13 @@ const Reels = () => {
   return (
     <div className="py-8 bg-gradient-to-br from-pink-50 via-white to-rose-50">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <h2 className="text-3xl font-serif text-gray-900">Our</h2>
-          <span className="text-3xl font-serif text-pink-500">Reels</span>
-          <div className="h-0.5 w-12 bg-pink-500"></div>
-        </div>
-
+        <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="h-px w-8 md:w-12 bg-gradient-to-r from-transparent to-rose-300" />
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-gray-900">
+              LATEST <span className="text-rose-500">VIDEOS</span>
+            </h2>
+            <div className="h-px w-8 md:w-12 bg-gradient-to-l from-transparent to-rose-300" />
+          </div>
         <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
           {reels.map((reel) => {
             const liked = reel.likes?.includes("me");

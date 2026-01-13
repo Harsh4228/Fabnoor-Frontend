@@ -43,9 +43,9 @@ const Contact = () => {
                 Our Store
               </p>
               <p className="text-gray-600 leading-relaxed">
-                841239, Mairwa, Siwan
+                841239, PuneGam, Surat
                 <br />
-                Bihar, India
+                Gujarat, India
               </p>
             </div>
 
@@ -68,9 +68,9 @@ const Contact = () => {
                 Contact Information
               </p>
               <p className="text-gray-600">
-                Tel: (+91) 9631742655
+                Tel: (+91) 9979624404
                 <br />
-                E-mail: nitesh@gmail.com
+                E-mail: harshbutani1@gmail.com
               </p>
             </div>
 

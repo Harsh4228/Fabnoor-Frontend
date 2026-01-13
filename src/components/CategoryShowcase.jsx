@@ -13,9 +13,7 @@ const CategoryShowcase = () => {
       if (!p.category || map[p.category]) return;
       map[p.category] = {
         name: p.category,
-        image:
-          p?.variants?.[0]?.images?.[0] ||
-          assets.placeholder_image,
+        image: p?.variants?.[0]?.images?.[0] || assets.placeholder_image,
       };
     });
     return Object.values(map);
@@ -38,7 +36,7 @@ const CategoryShowcase = () => {
           </p>
         </div>
 
-        {/* Categories Scroll */}
+        {/* Categories */}
         <div className="flex gap-6 md:gap-8 overflow-x-auto scrollbar-hide pb-4 px-2">
           {categories.map((cat) => (
             <div
@@ -46,23 +44,20 @@ const CategoryShowcase = () => {
               onClick={() => navigate(`/collection?category=${cat.name}`)}
               className="min-w-[140px] md:min-w-[160px] text-center cursor-pointer group"
             >
-              {/* Category Image Circle */}
+              {/* Image */}
               <div className="relative mx-auto mb-4">
-                {/* Decorative Ring */}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-200 to-pink-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 scale-110 blur-md" />
-                
-                {/* Image Container */}
-                <div className="relative w-32 h-32 md:w-36 md:h-36 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-transparent group-hover:border-rose-300 transition-all duration-300 shadow-md group-hover:shadow-xl">
+
+                <div className="relative w-32 h-44 md:w-36 md:h-52 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-transparent group-hover:border-rose-300 transition-all duration-300 shadow-md group-hover:shadow-xl">
                   <img
                     src={cat.image}
                     alt={cat.name}
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500"
                   />
-                  {/* Overlay */}
+
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
 
-                {/* Decorative Dot */}
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-rose-500 rounded-full border-2 border-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
@@ -70,7 +65,7 @@ const CategoryShowcase = () => {
                 </div>
               </div>
 
-              {/* Category Name */}
+              {/* Name */}
               <p className="text-sm md:text-base font-medium text-gray-800 group-hover:text-rose-500 transition-colors capitalize">
                 {cat.name}
               </p>

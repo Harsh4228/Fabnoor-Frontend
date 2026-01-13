@@ -7,7 +7,7 @@ const Hero = () => {
       <div className="absolute top-0 right-0 w-96 h-96 bg-rose-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
 
-      <img src={assets.hero} className="w-full h-full object-cover" alt="Hero" />
+      <img src={assets.Hero} className="w-full h-full object-cover" alt="Hero" />
 
       <style jsx>{`
         @keyframes blob {

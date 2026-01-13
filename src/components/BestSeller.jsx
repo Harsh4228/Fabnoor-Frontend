@@ -34,10 +34,12 @@ const BestSeller = () => {
       {/* Title Section */}
       <div className="text-center pb-8 md:pb-12 max-w-3xl mx-auto px-4">
         <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="h-px w-8 md:w-12 bg-gradient-to-r from-transparent to-rose-300" />
-          <Title text1="BEST" text2="SELLERS" />
-          <div className="h-px w-8 md:w-12 bg-gradient-to-l from-transparent to-rose-300" />
-        </div>
+            <div className="h-px w-8 md:w-12 bg-gradient-to-r from-transparent to-rose-300" />
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-gray-900">
+              BEST <span className="text-rose-500">SELLER</span>
+            </h2>
+            <div className="h-px w-8 md:w-12 bg-gradient-to-l from-transparent to-rose-300" />
+          </div>
         <p className="mt-3 text-sm md:text-base text-gray-600 max-w-xl mx-auto">
           Discover our most-loved pieces, handpicked by customers who embraced their style
         </p>

@@ -5,15 +5,15 @@ const AboutSection = () => {
     <section className="py-16 md:py-24 bg-gradient-to-b from-white via-pink-50/20 to-white" id="about">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+          
           {/* Image */}
           <div className="w-full lg:w-1/2">
             <div className="relative group">
-              {/* Decorative background glow */}
               <div className="absolute -inset-4 bg-gradient-to-r from-rose-200 to-pink-200 rounded-2xl opacity-30 blur-xl group-hover:opacity-40 transition-opacity duration-500" />
               
               <img
                 src="/src/assets/about_img.png"
-                alt="Fashion items layout"
+                alt="Fabnoor fashion collection"
                 className="relative rounded-2xl shadow-2xl w-full object-cover transform transition-transform duration-500 group-hover:scale-[1.02]"
               />
             </div>
@@ -21,6 +21,7 @@ const AboutSection = () => {
 
           {/* Content */}
           <div className="w-full lg:w-1/2 space-y-6">
+            
             {/* Title */}
             <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
               <h2 className="text-3xl md:text-4xl font-serif text-gray-900">ABOUT</h2>
@@ -30,11 +31,11 @@ const AboutSection = () => {
 
             {/* Description */}
             <p className="text-gray-600 leading-relaxed text-base md:text-lg">
-              Forever was born out of a passion for innovation and a desire to revolutionize the way people shop online. Our journey began with a simple idea: to provide a platform where customers can easily discover, explore, and purchase a wide range of products from the comfort of their homes.
+              Fabnoor was created with a vision to redefine online shopping by making it more inspiring, effortless, and enjoyable. Our journey began with a simple belief — that finding beautiful, high-quality products should be easy and accessible to everyone.
             </p>
 
             <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-              Since our inception, we've worked tirelessly to curate a diverse selection of high-quality products that cater to every taste and preference. From fashion and beauty to electronics and home essentials, we offer an extensive collection sourced from trusted brands and suppliers.
+              From fashion and beauty to home essentials and lifestyle accessories, Fabnoor curates a thoughtfully selected collection designed to match every style and every moment. Each product is chosen with care, quality, and trust at its heart.
             </p>
 
             {/* Mission */}
@@ -46,25 +47,26 @@ const AboutSection = () => {
                 Our Mission
               </h3>
               <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-                Our mission at Forever is to empower customers with choice, convenience, and confidence. We're dedicated to providing a seamless shopping experience that exceeds expectations, from browsing and ordering to delivery and beyond.
+                At Fabnoor, our mission is to bring together quality, style, and convenience into one seamless shopping experience. We are dedicated to helping our customers feel confident, inspired, and delighted every time they shop with us.
               </p>
             </div>
 
-            {/* Stats (Optional - can be added if needed) */}
+            {/* Stats */}
             <div className="grid grid-cols-3 gap-3 md:gap-4 mt-6 md:mt-8 pt-6 border-t border-gray-100">
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-serif text-rose-500">10K+</div>
-                <div className="text-xs md:text-sm text-gray-600 mt-1">Happy Customers</div>
+                <div className="text-xs md:text-sm text-gray-600 mt-1">Satisfied Customers</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-serif text-rose-500">500+</div>
-                <div className="text-xs md:text-sm text-gray-600 mt-1">Premium Products</div>
+                <div className="text-xs md:text-sm text-gray-600 mt-1">Curated Products</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-3xl font-serif text-rose-500">100%</div>
-                <div className="text-xs md:text-sm text-gray-600 mt-1">Authentic</div>
+                <div className="text-xs md:text-sm text-gray-600 mt-1">Trusted Quality</div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
