@@ -6,8 +6,10 @@ const Newsletter = () => {
   };
 
   return (
+    
     <section className="my-16 md:my-20 py-16 md:py-20 bg-gradient-to-br from-rose-50 via-pink-50 to-rose-50 relative overflow-hidden">
       {/* Decorative Elements */}
+      
       <div className="absolute top-0 right-0 w-64 h-64 bg-rose-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
       

@@ -42,7 +42,6 @@ const Reels = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // optimistic UI
       setReels((prev) =>
         prev.map((r) =>
           r._id === reelId
@@ -64,8 +63,8 @@ const Reels = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+      <div className="flex items-center justify-center py-16">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-500"></div>
       </div>
     );
   }
@@ -73,23 +72,36 @@ const Reels = () => {
   return (
     <div className="py-8 bg-gradient-to-br from-pink-50 via-white to-rose-50">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="h-px w-8 md:w-12 bg-gradient-to-r from-transparent to-rose-300" />
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-gray-900">
-              LATEST <span className="text-rose-500">VIDEOS</span>
-            </h2>
-            <div className="h-px w-8 md:w-12 bg-gradient-to-l from-transparent to-rose-300" />
-          </div>
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+
+        {/* TITLE */}
+        <div className="flex items-center justify-center gap-3 mb-5">
+          <div className="h-px w-6 bg-gradient-to-r from-transparent to-rose-300" />
+          <h2 className="text-xl md:text-2xl font-serif text-gray-900">
+            LATEST <span className="text-rose-500">VIDEOS</span>
+          </h2>
+          <div className="h-px w-6 bg-gradient-to-l from-transparent to-rose-300" />
+        </div>
+
+        {/* REELS STRIP */}
+        <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory">
+
           {reels.map((reel) => {
             const liked = reel.likes?.includes("me");
 
             return (
               <div
                 key={reel._id}
-                className="relative min-w-[280px] sm:min-w-[320px] h-[500px] sm:h-[550px] bg-black rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 snap-center group"
+                className="
+                  relative
+                  min-w-[200px] sm:min-w-[220px] lg:min-w-[240px]
+                  h-[360px] sm:h-[390px] lg:h-[420px]
+                  bg-black rounded-xl overflow-hidden
+                  shadow-md hover:shadow-lg
+                  transition-all duration-300
+                  snap-center group
+                "
               >
-                {/* Video */}
+                {/* VIDEO */}
                 <video
                   src={reel.videoUrl}
                   className="w-full h-full object-cover"
@@ -99,50 +111,55 @@ const Reels = () => {
                   playsInline
                 />
 
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                {/* OVERLAY */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                {/* Content Overlay */}
-                <div className="absolute inset-0 flex flex-col justify-end p-5">
+                {/* CONTENT */}
+                <div className="absolute inset-0 flex flex-col justify-end p-3">
 
-                  {/* Caption */}
-                  <p className="text-white text-sm mb-4 line-clamp-2 font-medium">
+                  {/* CAPTION */}
+                  <p className="text-white text-xs mb-2 line-clamp-2 font-medium">
                     {reel.caption}
                   </p>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-4">
+                  {/* ACTIONS */}
+                  <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleLike(reel._id)}
-                      className="flex items-center gap-2 text-white hover:scale-110 transition-transform duration-300"
+                      className="flex items-center gap-1.5 text-white hover:scale-105 transition"
                     >
                       {liked ? (
-                        <FaHeart className="text-2xl text-pink-500 drop-shadow-lg" />
+                        <FaHeart className="text-lg text-pink-500" />
                       ) : (
-                        <FaRegHeart className="text-2xl drop-shadow-lg" />
+                        <FaRegHeart className="text-lg" />
                       )}
-                      <span className="text-sm font-semibold">
+                      <span className="text-xs font-semibold">
                         {reel.likes?.length || 0}
                       </span>
                     </button>
 
-                    <button className="ml-auto px-4 py-2 bg-white/20 backdrop-blur-sm text-white text-sm rounded-full hover:bg-white/30 transition-all duration-300">
-                      View Details
+                    <button className="ml-auto px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-[11px] rounded-full hover:bg-white/30 transition">
+                      View
                     </button>
                   </div>
                 </div>
 
-                {/* Play Indicator */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="w-16 h-16 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
+                {/* PLAY ICON */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                  <div className="w-12 h-12 bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
                 </div>
               </div>
             );
           })}
+
         </div>
       </div>
     </div>
