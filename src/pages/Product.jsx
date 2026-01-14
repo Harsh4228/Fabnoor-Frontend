@@ -35,6 +35,9 @@ const Product = () => {
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
 
+  /* ✅ ZOOM HINT (ONLY ADDITION) */
+  const [showZoomHint, setShowZoomHint] = useState(false);
+
   /* ================= LOAD PRODUCT ================= */
   useEffect(() => {
     const product = products.find((p) => p._id === productId);
@@ -166,6 +169,8 @@ const Product = () => {
                   setIsPreviewOpen(true);
                   setZoom(1);
                   setPosition({ x: 0, y: 0 });
+                  setShowZoomHint(true);
+                  setTimeout(() => setShowZoomHint(false), 2000);
                 }}
                 className="w-full h-full object-cover cursor-zoom-in"
               />
@@ -174,7 +179,6 @@ const Product = () => {
 
           {/* ================= INFO ================= */}
           <div className="flex-1 bg-white rounded-2xl shadow-lg p-6 md:p-8">
-
             <div className="flex justify-between mb-2">
               <h1 className="text-3xl font-serif">{productData.name}</h1>
               <button
@@ -281,13 +285,21 @@ const Product = () => {
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-5xl h-[85vh] overflow-hidden flex items-center justify-center"
           >
-            {/* ✅ CLOSE BUTTON (ONLY ADDITION) */}
+            {/* CLOSE BUTTON */}
             <button
               onClick={closePreview}
               className="absolute top-4 right-4 z-50 w-10 h-10 bg-white rounded-full flex items-center justify-center text-2xl font-bold text-gray-700 hover:bg-red-50 hover:text-red-500"
             >
               ×
             </button>
+
+            {/* ✅ DOUBLE TAP HINT */}
+            {showZoomHint && (
+              <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 
+                              bg-black/70 text-white px-4 py-2 rounded-full text-sm">
+                Double tap to zoom
+              </div>
+            )}
 
             <img
               src={selectedImage}
