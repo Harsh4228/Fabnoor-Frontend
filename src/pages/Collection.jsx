@@ -133,7 +133,7 @@ const Collection = () => {
                 </div>
 
                 {/* Wishlist */}
-                <button
+                {/* <button
                   onClick={(e) => toggleWishlist(item._id, e)}
                   className="absolute top-2 right-2 z-10 bg-white/90 p-2 rounded-full hover:bg-rose-500 hover:text-white shadow-md"
                 >
@@ -142,7 +142,7 @@ const Collection = () => {
                   ) : (
                     <FaRegHeart />
                   )}
-                </button>
+                </button> */}
 
                 {/* Image */}
                 <div className="w-full h-48 md:h-56 overflow-hidden">

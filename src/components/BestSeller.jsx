@@ -64,7 +64,7 @@ const BestSeller = () => {
                 </div>
 
                 {/* Wishlist Button */}
-                <button
+                {/* <button
                   onClick={(e) => toggleWishlist(item._id, e)}
                   className="absolute top-2 md:top-3 right-2 md:right-3 z-10 bg-white/90 backdrop-blur-sm p-1.5 md:p-2 rounded-full hover:bg-rose-500 hover:text-white transition-all shadow-md group/wishlist"
                 >
@@ -73,7 +73,7 @@ const BestSeller = () => {
                   ) : (
                     <FaRegHeart className="w-3 h-3 md:w-4 md:h-4" />
                   )}
-                </button>
+                </button> */}
 
                 {/* Product Image */}
                 <div className="w-full h-48 md:h-56 overflow-hidden">
@@ -86,6 +86,13 @@ const BestSeller = () => {
 
                 {/* Gradient Overlay on Hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                {/* Quick View Button */}
+                <div className="absolute bottom-0 left-0 right-0 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                  <div className="bg-white/95 backdrop-blur-sm p-2 text-center">
+                    <span className="text-xs text-rose-500 font-medium">Quick View</span>
+                  </div>
+                </div>
               </div>
 
               {/* Product Info */}
