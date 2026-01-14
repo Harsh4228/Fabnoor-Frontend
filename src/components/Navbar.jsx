@@ -4,7 +4,6 @@ import { Link, NavLink } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { FaRegHeart } from "react-icons/fa";
 
-
 function Navbar() {
   const [visible, setVisible] = useState(false);
   const {
@@ -40,25 +39,25 @@ function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="flex-1 md:w-1/3 flex justify-center">
-            <img 
-              src={assets.logo} 
-              className="h-16 md:h-20 w-auto transition-transform hover:scale-105" 
-              alt="Fabnoor Logo" 
+            <img
+              src={assets.logo}
+              className="h-16 md:h-20 w-auto transition-transform hover:scale-105"
+              alt="Fabnoor Logo"
             />
           </Link>
 
           {/* Icons */}
-          <div className="w-1/3 flex justify-end items-center gap-5 md:gap-6">
+          {/* 🔧 FIX: remove w-1/3 on mobile, keep it only for md+ */}
+          <div className="flex justify-end items-center gap-4 md:gap-6 md:w-1/3">
             <img
-  onClick={() => {
-    setShowSearch(true);
-    navigate("/collection");
-  }}
-  src={assets.search_icon}
-  className="w-5 cursor-pointer hover:opacity-70 transition-opacity"
-  alt="Search"
-/>
-
+              onClick={() => {
+                setShowSearch(true);
+                navigate("/collection");
+              }}
+              src={assets.search_icon}
+              className="w-5 cursor-pointer hover:opacity-70 transition-opacity"
+              alt="Search"
+            />
 
             {/* Profile */}
             <div className="relative group">
@@ -101,23 +100,34 @@ function Navbar() {
 
             {/* Cart */}
             <Link to="/cart" className="relative">
-              <img 
-                src={assets.cart_icon} 
-                className="w-5 hover:opacity-70 transition-opacity" 
-                alt="Cart" 
+              <img
+                src={assets.cart_icon}
+                className="w-5 hover:opacity-70 transition-opacity"
+                alt="Cart"
               />
-              <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-medium shadow-md">
+              {/* 🔧 FIX: mobile-friendly badge position */}
+              <span className="absolute -top-1 -right-1 md:-top-2 md:-right-2 bg-rose-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-medium shadow-md">
                 {getCartItems()}
               </span>
             </Link>
 
             {/* Mobile Menu Toggle */}
-            <button 
+            <button
               onClick={() => setVisible(!visible)}
               className="sm:hidden hover:text-rose-500 transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
             </button>
           </div>
@@ -152,12 +162,26 @@ function Navbar() {
       >
         <div className="flex justify-between items-center p-5 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800">Menu</h3>
-          <button onClick={() => setVisible(false)} className="text-gray-600 hover:text-rose-500">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button
+            onClick={() => setVisible(false)}
+            className="text-gray-600 hover:text-rose-500"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
+
         <ul className="flex flex-col p-5 space-y-1">
           {["Home", "Collection", "About", "Contact"].map((item, index) => (
             <NavLink
@@ -188,8 +212,12 @@ function Navbar() {
 
       <style jsx>{`
         @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
         }
         .animate-marquee {
           display: inline-block;
