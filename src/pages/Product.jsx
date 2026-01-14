@@ -28,7 +28,7 @@ const Product = () => {
   const [selectedImage, setSelectedImage] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
 
-  /* ===== Preview & Zoom (ADDITIVE ONLY) ===== */
+  /* ===== Preview & Zoom ===== */
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -129,6 +129,12 @@ const Product = () => {
 
   const endDrag = () => setIsDragging(false);
 
+  const closePreview = () => {
+    setIsPreviewOpen(false);
+    setZoom(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
       <div className="border-t pt-10 px-4 md:px-10">
@@ -169,7 +175,6 @@ const Product = () => {
           {/* ================= INFO ================= */}
           <div className="flex-1 bg-white rounded-2xl shadow-lg p-6 md:p-8">
 
-            {/* TITLE + WISHLIST */}
             <div className="flex justify-between mb-2">
               <h1 className="text-3xl font-serif">{productData.name}</h1>
               <button
@@ -189,18 +194,15 @@ const Product = () => {
               </button>
             </div>
 
-            {/* TYPE */}
             <p className="text-sm text-gray-600 mb-4">
               <b>Type:</b> {selectedVariant.type}
             </p>
 
-            {/* PRICE */}
             <p className="text-4xl font-bold text-pink-500 mb-6">
               {currency}
               {selectedPrice}
             </p>
 
-            {/* ✅ DESCRIPTION (RESTORED & VERIFIED) */}
             <p className="text-gray-600 leading-relaxed mb-8">
               {productData.description}
             </p>
@@ -252,7 +254,6 @@ const Product = () => {
               </div>
             </div>
 
-            {/* ADD TO CART */}
             <button
               onClick={handleAddToCart}
               className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-4 rounded-xl font-semibold"
@@ -262,7 +263,6 @@ const Product = () => {
           </div>
         </div>
 
-        {/* RELATED */}
         <div className="mt-20">
           <RelatedProducts
             category={productData.category}
@@ -274,17 +274,21 @@ const Product = () => {
       {/* ================= IMAGE PREVIEW ================= */}
       {isPreviewOpen && (
         <div
-          onClick={() => {
-            setIsPreviewOpen(false);
-            setZoom(1);
-            setPosition({ x: 0, y: 0 });
-          }}
+          onClick={closePreview}
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-5xl h-[85vh] overflow-hidden flex items-center justify-center"
+            className="relative w-full max-w-5xl h-[85vh] overflow-hidden flex items-center justify-center"
           >
+            {/* ✅ CLOSE BUTTON (ONLY ADDITION) */}
+            <button
+              onClick={closePreview}
+              className="absolute top-4 right-4 z-50 w-10 h-10 bg-white rounded-full flex items-center justify-center text-2xl font-bold text-gray-700 hover:bg-red-50 hover:text-red-500"
+            >
+              ×
+            </button>
+
             <img
               src={selectedImage}
               onDoubleClick={handleDoubleClick}
@@ -298,7 +302,6 @@ const Product = () => {
               className="select-none max-w-full max-h-full object-contain"
               style={{
                 transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
-                transformOrigin: "center center",
                 transition: isDragging ? "none" : "transform 0.2s ease",
                 touchAction: "none",
               }}
