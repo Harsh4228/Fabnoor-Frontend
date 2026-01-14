@@ -23,6 +23,9 @@ const Product = () => {
   const [selectedImage, setSelectedImage] = useState("");
   const [selectedSize, setSelectedSize] = useState(null);
 
+  // 🔹 NEW: image preview state
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
   /* ================= LOAD PRODUCT ================= */
   useEffect(() => {
     const product = products.find((p) => p._id === productId);
@@ -59,11 +62,7 @@ const Product = () => {
   /* ================= WISHLIST ================= */
   const liked =
     selectedSize &&
-    isInWishlist(
-      productData._id,
-      selectedVariant.color,
-      selectedSize
-    );
+    isInWishlist(productData._id, selectedVariant.color, selectedSize);
 
   const handleWishlist = () => {
     if (!selectedSize) {
@@ -122,7 +121,8 @@ const Product = () => {
                 <img
                   src={selectedImage || assets.placeholder_image}
                   alt={productData.name}
-                  className="w-full h-full object-cover"
+                  onClick={() => setIsPreviewOpen(true)}
+                  className="w-full h-full object-cover cursor-zoom-in"
                 />
               </div>
             </div>
@@ -154,7 +154,7 @@ const Product = () => {
               </button>
             </div>
 
-            {/* TYPE (NEW) */}
+            {/* TYPE */}
             <p className="text-sm text-gray-600 mb-4">
               <span className="font-semibold text-gray-800">Type:</span>{" "}
               {selectedVariant.type}
@@ -173,7 +173,7 @@ const Product = () => {
               {productData.description}
             </p>
 
-            {/* ================= COLORS ================= */}
+            {/* COLORS */}
             <div className="mb-8">
               <p className="mb-3 font-semibold text-gray-900 flex items-center gap-2">
                 <span className="w-1 h-5 bg-pink-500 rounded"></span>
@@ -200,7 +200,7 @@ const Product = () => {
               </div>
             </div>
 
-            {/* ================= SIZES ================= */}
+            {/* SIZES */}
             <div className="mb-8">
               <p className="mb-3 font-semibold text-gray-900 flex items-center gap-2">
                 <span className="w-1 h-5 bg-pink-500 rounded"></span>
@@ -229,10 +229,10 @@ const Product = () => {
               </div>
             </div>
 
-            {/* ================= ADD TO CART ================= */}
+            {/* ADD TO CART */}
             <button
               onClick={handleAddToCart}
-              className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-4 rounded-xl text-lg font-semibold hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-xl flex items-center justify-center gap-3"
+              className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-4 rounded-xl text-lg font-semibold hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-xl"
             >
               ADD TO CART
             </button>
@@ -246,6 +246,32 @@ const Product = () => {
           />
         </div>
       </div>
+
+      {/* ================= IMAGE PREVIEW MODAL ================= */}
+      {isPreviewOpen && (
+        <div
+          onClick={() => setIsPreviewOpen(false)}
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl w-full px-4"
+          >
+            <button
+              onClick={() => setIsPreviewOpen(false)}
+              className="absolute -top-10 right-2 text-white text-3xl font-bold"
+            >
+              ×
+            </button>
+
+            <img
+              src={selectedImage || assets.placeholder_image}
+              className="w-full max-h-[85vh] object-contain rounded-xl bg-white"
+              alt="Preview"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
