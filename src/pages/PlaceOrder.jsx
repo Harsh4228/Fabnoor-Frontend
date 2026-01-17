@@ -1,10 +1,14 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import { FaSpinner } from "react-icons/fa";
 import axios from "axios";
+
+import Select from "react-select";
+import { Country, State } from "country-state-city";
+import { replace } from "react-router-dom";
 
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
@@ -34,48 +38,161 @@ const PlaceOrder = () => {
     phone: "",
   });
 
-  const onChangeHandler = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const [errors, setErrors] = useState({});
+
+  // ================== VALIDATIONS ==================
+  const validateEmail = (email) => {
+    const re =
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@"]+\.)+[^<>()[\]\\.,;:\s@"]{2,})$/i;
+    return re.test(String(email).toLowerCase());
   };
 
-  /* ================= BUILD ORDER ITEMS (WHOLESALE PACK) ================= */
+  const validatePhone = (phone) => {
+    const cleaned = phone.replace(/\s+/g, "");
+    const re = /^[+]?[0-9]{10,15}$/;
+    return re.test(cleaned);
+  };
+
+  const validatePinCode = (pin) => {
+    // India 6 digit
+    const re = /^[0-9]{6}$/;
+    return re.test(pin);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.firstName.trim()) newErrors.firstName = "First name required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name required";
+
+    if (!formData.email.trim()) newErrors.email = "Email required";
+    else if (!validateEmail(formData.email))
+      newErrors.email = "Enter valid email";
+
+    if (!formData.street.trim()) newErrors.street = "Street required";
+    if (!formData.city.trim()) newErrors.city = "City required";
+
+    if (!formData.country.trim()) newErrors.country = "Country required";
+    if (!formData.state.trim()) newErrors.state = "State required";
+
+    if (!formData.pinCode.trim()) newErrors.pinCode = "Pin code required";
+    else if (!validatePinCode(formData.pinCode))
+      newErrors.pinCode = "Enter valid 6-digit pin code";
+
+    if (!formData.phone.trim()) newErrors.phone = "Phone number required";
+    else if (!validatePhone(formData.phone))
+      newErrors.phone = "Enter valid phone number (10-15 digits)";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // ================== INPUT CHANGE HANDLER ==================
+  const onChangeHandler = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
+  };
+
+  // ================== COUNTRY / STATE OPTIONS ==================
+  const countryOptions = useMemo(() => {
+    return Country.getAllCountries().map((c) => ({
+      label: c.name,
+      value: c.isoCode,
+    }));
+  }, []);
+
+  const selectedCountryOption = useMemo(() => {
+    const found = Country.getAllCountries().find(
+      (c) => c.name === formData.country
+    );
+    if (!found) return null;
+    return { label: found.name, value: found.isoCode };
+  }, [formData.country]);
+
+  const stateOptions = useMemo(() => {
+    if (!selectedCountryOption?.value) return [];
+    return State.getStatesOfCountry(selectedCountryOption.value).map((s) => ({
+      label: s.name,
+      value: s.isoCode,
+    }));
+  }, [selectedCountryOption]);
+
+  // ================== BUILD ORDER ITEMS (FIXED FOR BOTH CART STRUCTURES) ==================
   const buildOrderItems = () => {
     const items = [];
 
     for (const productId in cartItems) {
-      const cartItem = cartItems[productId];
-
-      const qty = Number(cartItem?.quantity || 0);
-      if (qty <= 0) continue;
-
       const product = products.find((p) => p._id === productId);
       if (!product) continue;
 
-      // match variant using color + type
-      const matchedVariant =
-        product?.variants?.find(
-          (v) => v.color === cartItem?.color && v.type === cartItem?.type
-        ) || product?.variants?.[0];
+      const cartValue = cartItems[productId];
 
-      if (!matchedVariant) continue;
+      // ✅ CASE 1: cartValue has { quantity, color, type }
+      if (cartValue && typeof cartValue === "object" && "quantity" in cartValue) {
+        const qty = Number(cartValue?.quantity || 0);
+        if (qty <= 0) continue;
 
-      items.push({
-        productId,
-        name: product.name,
-        color: matchedVariant.color || cartItem?.color || "",
-        type: matchedVariant.type || cartItem?.type || "",
-        quantity: qty,
-        price: Number(matchedVariant.price) || 0,
-        image: matchedVariant.images?.[0] || "",
-      });
+        const matchedVariant =
+          product?.variants?.find(
+            (v) => v.color === cartValue?.color && v.type === cartValue?.type
+          ) || product?.variants?.[0];
+
+        if (!matchedVariant) continue;
+
+        items.push({
+          productId,
+          name: product.name,
+          color: matchedVariant.color || cartValue?.color || "",
+          type: matchedVariant.type || cartValue?.type || "",
+          size: cartValue?.type || "", // optional
+          quantity: qty,
+          price: Number(matchedVariant.price) || 0, 
+          image: matchedVariant.images?.[0] || "",
+        });
+
+        continue;
+      }
+
+      // ✅ CASE 2: cartValue is size object { "S": 2, "M": 1 }
+      if (cartValue && typeof cartValue === "object") {
+        for (const size in cartValue) {
+          const qty = Number(cartValue[size]);
+          if (qty <= 0) continue;
+
+          let matchedVariant = null;
+
+          for (const variant of product.variants || []) {
+            const sizes = Array.isArray(variant.sizes) ? variant.sizes : [];
+            if (sizes.includes(String(size))) {
+              matchedVariant = variant;
+              break;
+            }
+          }
+
+          if (!matchedVariant) continue;
+
+          items.push({
+            productId,
+            name: product.name,
+            color: matchedVariant.color || "",
+            size,
+            quantity: qty,
+            price: Number(matchedVariant.price) || 0,
+            image: matchedVariant.images?.[0] || "",
+          });
+        }
+      }
     }
 
     return items;
   };
 
-  /* ================= SUBMIT ORDER ================= */
+  // ================== SUBMIT ORDER ==================
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
     setLoading(true);
 
     try {
@@ -83,7 +200,6 @@ const PlaceOrder = () => {
 
       if (!items.length) {
         alert("Cart is empty");
-        setLoading(false);
         return;
       }
 
@@ -101,7 +217,7 @@ const PlaceOrder = () => {
         amount: getCartAmount() + delivery_fee,
       };
 
-      /* ================= COD ================= */
+      // ================= COD =================
       if (method === "cod") {
         const res = await axios.post(`${backendUrl}/api/order/place`, orderData, {
           headers: { Authorization: `Bearer ${token}` },
@@ -110,11 +226,11 @@ const PlaceOrder = () => {
         if (res.data.success) {
           setCartItems({});
           localStorage.removeItem("cartItems");
-          navigate("/orders");
+          navigate("/orders",{replace:true});
         }
       }
 
-      /* ================= RAZORPAY ================= */
+      // ================= RAZORPAY =================
       if (method === "razorpay") {
         const res = await axios.post(
           `${backendUrl}/api/order/razorpay`,
@@ -148,7 +264,7 @@ const PlaceOrder = () => {
               if (verify.data.success) {
                 setCartItems({});
                 localStorage.removeItem("cartItems");
-                navigate("/orders");
+                navigate("/orders",{replace:true});
               }
             },
           };
@@ -164,9 +280,23 @@ const PlaceOrder = () => {
     }
   };
 
+  // ================== REACT-SELECT STYLES ==================
+  const selectStyles = {
+    control: (base, state) => ({
+      ...base,
+      borderRadius: "0.5rem",
+      borderWidth: "2px",
+      borderColor: state.isFocused ? "#ec4899" : "#e5e7eb",
+      boxShadow: "none",
+      padding: "2px",
+      "&:hover": { borderColor: "#f9a8d4" },
+    }),
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 pt-5 sm:pt-14">
       <div className="container mx-auto px-4 md:px-8">
+        {/* ✅ FIX: wrap inside FORM so submit works properly */}
         <form
           onSubmit={onSubmitHandler}
           className="flex flex-col lg:flex-row justify-between gap-8"
@@ -179,42 +309,173 @@ const PlaceOrder = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  ["firstName", "First name"],
-                  ["lastName", "Last name"],
-                ].map(([name, placeholder]) => (
+                {/* FIRST NAME */}
+                <div>
                   <input
-                    key={name}
-                    required
-                    name={name}
-                    value={formData[name]}
+                    name="firstName"
+                    value={formData.firstName}
                     onChange={onChangeHandler}
                     className="border-2 border-gray-200 rounded-lg py-3 px-4 w-full focus:outline-none focus:border-pink-500 transition"
-                    placeholder={placeholder}
+                    placeholder="First name"
                   />
-                ))}
+                  {errors.firstName && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.firstName}
+                    </p>
+                  )}
+                </div>
+
+                {/* LAST NAME */}
+                <div>
+                  <input
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={onChangeHandler}
+                    className="border-2 border-gray-200 rounded-lg py-3 px-4 w-full focus:outline-none focus:border-pink-500 transition"
+                    placeholder="Last name"
+                  />
+                  {errors.lastName && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.lastName}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-4 mt-4">
-                {[
-                  ["email", "E-mail address"],
-                  ["street", "Street address"],
-                  ["city", "City"],
-                  ["state", "State"],
-                  ["pinCode", "Pin Code"],
-                  ["country", "Country"],
-                  ["phone", "Phone number"],
-                ].map(([name, placeholder]) => (
+                {/* EMAIL */}
+                <div>
                   <input
-                    key={name}
-                    required
-                    name={name}
-                    value={formData[name]}
+                    name="email"
+                    value={formData.email}
                     onChange={onChangeHandler}
                     className="border-2 border-gray-200 rounded-lg py-3 px-4 w-full focus:outline-none focus:border-pink-500 transition"
-                    placeholder={placeholder}
+                    placeholder="E-mail address"
                   />
-                ))}
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  )}
+                </div>
+
+                {/* STREET */}
+                <div>
+                  <input
+                    name="street"
+                    value={formData.street}
+                    onChange={onChangeHandler}
+                    className="border-2 border-gray-200 rounded-lg py-3 px-4 w-full focus:outline-none focus:border-pink-500 transition"
+                    placeholder="Street address"
+                  />
+                  {errors.street && (
+                    <p className="text-red-500 text-sm mt-1">{errors.street}</p>
+                  )}
+                </div>
+
+                {/* CITY */}
+                <div>
+                  <input
+                    name="city"
+                    value={formData.city}
+                    onChange={onChangeHandler}
+                    className="border-2 border-gray-200 rounded-lg py-3 px-4 w-full focus:outline-none focus:border-pink-500 transition"
+                    placeholder="City"
+                  />
+                  {errors.city && (
+                    <p className="text-red-500 text-sm mt-1">{errors.city}</p>
+                  )}
+                </div>
+
+                {/* COUNTRY SEARCH */}
+                <div>
+                  <Select
+                    styles={selectStyles}
+                    options={countryOptions}
+                    value={selectedCountryOption}
+                    onChange={(selected) => {
+                      const countryName = selected?.label || "";
+                      setFormData((prev) => ({
+                        ...prev,
+                        country: countryName,
+                        state: "",
+                      }));
+                      setErrors((prev) => ({ ...prev, country: "", state: "" }));
+                    }}
+                    placeholder="Search & Select Country"
+                    isSearchable
+                  />
+                  {errors.country && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.country}
+                    </p>
+                  )}
+                </div>
+
+                {/* STATE SEARCH */}
+                <div>
+                  <Select
+                    styles={selectStyles}
+                    options={stateOptions}
+                    value={
+                      formData.state
+                        ? { label: formData.state, value: formData.state }
+                        : null
+                    }
+                    onChange={(selected) => {
+                      const stateName = selected?.label || "";
+                      setFormData((prev) => ({ ...prev, state: stateName }));
+                      setErrors((prev) => ({ ...prev, state: "" }));
+                    }}
+                    placeholder={
+                      formData.country
+                        ? "Search & Select State"
+                        : "Select Country First"
+                    }
+                    isSearchable
+                    isDisabled={!formData.country}
+                  />
+                  {errors.state && (
+                    <p className="text-red-500 text-sm mt-1">{errors.state}</p>
+                  )}
+                </div>
+
+                {/* PINCODE */}
+                <div>
+                  <input
+                    name="pinCode"
+                    value={formData.pinCode}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setFormData((prev) => ({ ...prev, pinCode: val }));
+                      setErrors((prev) => ({ ...prev, pinCode: "" }));
+                    }}
+                    maxLength={6}
+                    className="border-2 border-gray-200 rounded-lg py-3 px-4 w-full focus:outline-none focus:border-pink-500 transition"
+                    placeholder="Pin Code"
+                  />
+                  {errors.pinCode && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.pinCode}
+                    </p>
+                  )}
+                </div>
+
+                {/* PHONE */}
+                <div>
+                  <input
+                    name="phone"
+                    value={formData.phone}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9+]/g, "");
+                      setFormData((prev) => ({ ...prev, phone: val }));
+                      setErrors((prev) => ({ ...prev, phone: "" }));
+                    }}
+                    className="border-2 border-gray-200 rounded-lg py-3 px-4 w-full focus:outline-none focus:border-pink-500 transition"
+                    placeholder="Phone number (ex: +91xxxxxxxxxx)"
+                  />
+                  {errors.phone && (
+                    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -244,19 +505,6 @@ const PlaceOrder = () => {
                       src={assets.razorpay_logo}
                       alt="Razorpay"
                     />
-                    {method === "razorpay" && (
-                      <svg
-                        className="w-5 h-5 text-pink-500"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    )}
                   </button>
 
                   <button
@@ -268,37 +516,12 @@ const PlaceOrder = () => {
                         : "border-gray-200 text-gray-700 hover:border-pink-300"
                     }`}
                   >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
                     CASH ON DELIVERY
-                    {method === "cod" && (
-                      <svg
-                        className="w-5 h-5 text-pink-500"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    )}
                   </button>
                 </div>
 
                 <div className="mt-8">
+                  {/* ✅ FIX: submit button must be type="submit" */}
                   <button
                     type="submit"
                     disabled={loading}

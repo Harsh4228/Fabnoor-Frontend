@@ -64,7 +64,7 @@ const BestSeller = () => {
                 </div>
 
                 {/* Wishlist Button */}
-                {/* <button
+                <button
                   onClick={(e) => toggleWishlist(item._id, e)}
                   className="absolute top-2 md:top-3 right-2 md:right-3 z-10 bg-white/90 backdrop-blur-sm p-1.5 md:p-2 rounded-full hover:bg-rose-500 hover:text-white transition-all shadow-md group/wishlist"
                 >
@@ -73,7 +73,7 @@ const BestSeller = () => {
                   ) : (
                     <FaRegHeart className="w-3 h-3 md:w-4 md:h-4" />
                   )}
-                </button> */}
+                </button>
 
                 {/* Product Image */}
                 <div className="w-full h-48 md:h-56 overflow-hidden">
