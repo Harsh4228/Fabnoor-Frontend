@@ -3,15 +3,17 @@ import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-
 const Login = () => {
   const [currentState, setCurrentState] = useState("Login");
-  const { token, setToken, navigate} =
-    useContext(ShopContext);
+  const { token, setToken, navigate } = useContext(ShopContext);
 
   const [name, setName] = useState("");
+  const [mobile, setMobile] = useState(""); // ✅ new state
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false); // ✅ show/hide password
+
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   /* ================= SUBMIT ================= */
@@ -25,10 +27,12 @@ const Login = () => {
       }
 
       if (currentState === "Sign Up") {
-        const res = await axios.post(
-          `${backendUrl}/api/user/register`,
-          { name, email, password }
-        );
+        const res = await axios.post(`${backendUrl}/api/user/register`, {
+          name,
+          email,
+          password,
+          mobile, // ✅ send mobile also
+        });
 
         if (res.data.success) {
           setToken(res.data.token);
@@ -38,10 +42,10 @@ const Login = () => {
           toast.error(res.data.message);
         }
       } else {
-        const res = await axios.post(
-          `${backendUrl}/api/user/login`,
-          { email, password }
-        );
+        const res = await axios.post(`${backendUrl}/api/user/login`, {
+          email,
+          password,
+        });
 
         if (res.data.success) {
           setToken(res.data.token);
@@ -56,9 +60,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error(
-        error.response?.data?.message || "Something went wrong"
-      );
+      toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
 
@@ -79,6 +81,7 @@ const Login = () => {
         <hr className="border-none h-[1.5px] w-8 bg-gray-800" />
       </div>
 
+      {/* ✅ Name Field */}
       {currentState === "Sign Up" && (
         <input
           type="text"
@@ -90,6 +93,19 @@ const Login = () => {
         />
       )}
 
+      {/* ✅ Mobile Field */}
+      {currentState === "Sign Up" && (
+        <input
+          type="tel"
+          value={mobile}
+          onChange={(e) => setMobile(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-800 rounded-md"
+          placeholder="Mobile Number"
+          required
+        />
+      )}
+
+      {/* Email */}
       <input
         type="email"
         value={email}
@@ -99,14 +115,25 @@ const Login = () => {
         required
       />
 
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-800 rounded-md"
-        placeholder="Password"
-        required
-      />
+      {/* ✅ Password with Show/Hide */}
+      <div className="w-full relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-800 rounded-md pr-16"
+          placeholder="Password"
+          required
+        />
+
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-600 hover:underline"
+        >
+          {showPassword ? "Hide" : "Show"}
+        </button>
+      </div>
 
       <div className="w-full flex justify-between text-sm mt-[-8px]">
         <p className="cursor-pointer text-gray-600 hover:underline">

@@ -42,16 +42,23 @@ const Order = () => {
         <Title text1={"MY"} text2={"ORDERS"} />
       </div>
 
+      {/* EMPTY */}
+      {orderData.length === 0 && (
+        <p className="text-center text-gray-500 mt-10">
+          No orders found
+        </p>
+      )}
+
       {/* ORDER LIST */}
       <div>
-        {orderData.map((order, index) => (
+        {orderData.map((order) => (
           <div
-            key={index}
+            key={order._id}
             className="py-4 border-t border-b text-gray-700 flex flex-col gap-4"
           >
             {order.items.map((item, i) => (
               <div
-                key={i}
+                key={`${order._id}-${item.productId || item.name}-${i}`}
                 className="flex flex-col md:flex-row md:justify-between gap-4"
               >
                 <div className="flex gap-6 text-sm">
@@ -64,7 +71,7 @@ const Order = () => {
                   <div>
                     <p className="sm:text-base font-medium">{item.name}</p>
 
-                    <div className="flex gap-3 mt-1 text-base">
+                    <div className="flex gap-3 mt-1 text-base flex-wrap">
                       <p>
                         {currency}
                         {item.price}
@@ -131,8 +138,7 @@ const Order = () => {
               <p>{selectedOrder.address.fullName}</p>
               <p>{selectedOrder.address.addressLine}</p>
               <p>
-                {selectedOrder.address.city},{" "}
-                {selectedOrder.address.state}
+                {selectedOrder.address.city}, {selectedOrder.address.state}
               </p>
               <p>{selectedOrder.address.pincode}</p>
               <p>{selectedOrder.address.phone}</p>

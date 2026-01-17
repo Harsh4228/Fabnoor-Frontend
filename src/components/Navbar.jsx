@@ -71,31 +71,6 @@ function Navbar() {
               alt="Search"
             />
 
-            {/* Profile */}
-            <div className="relative group">
-              <img
-                onClick={() => (token ? null : navigate("/login"))}
-                src={assets.profile_icon}
-                className="w-5 cursor-pointer hover:opacity-70"
-                alt="Profile"
-              />
-              {token && (
-                <div className="hidden group-hover:block absolute right-0 pt-4">
-                  <div className="bg-white shadow-lg rounded-xl w-40 px-5 py-4 text-sm border">
-                    <p onClick={() => navigate("/profile")} className="py-2 hover:text-rose-500 cursor-pointer">
-                      My Profile
-                    </p>
-                    <p onClick={() => navigate("/order")} className="py-2 hover:text-rose-500 cursor-pointer">
-                      Orders
-                    </p>
-                    <p onClick={logout} className="py-2 hover:text-rose-500 cursor-pointer">
-                      Logout
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Wishlist */}
             <Link to="/wishlist">
               <FaRegHeart size={22} />
@@ -115,26 +90,38 @@ function Navbar() {
       {/* ================= DESKTOP MENU ================= */}
       <nav className="hidden sm:block border-b bg-gradient-to-b from-white to-pink-50/20">
         <ul className="flex justify-center gap-8 py-4 text-sm font-medium text-gray-700">
-          {["Home", "Collection", "About", "Contact"].map((item) => (
-            <NavLink
-              key={item}
-              to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-              className={({ isActive }) =>
-                `relative group ${isActive ? "text-rose-500" : ""}`
-              }
-            >
-              {item.toUpperCase()}
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
-            </NavLink>
+
+          {["Home", "Collection", "About", "Contact", "order", "profile"].map((item) => (
+            <>
+              <NavLink
+                key={item}
+                to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+                className={({ isActive }) =>
+                  `relative group ${isActive ? "text-rose-500" : ""}`
+                }
+              >
+                {item.toUpperCase()}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
+              </NavLink>
+            </>
           ))}
+          <button
+            className={({ isActive }) =>
+              `relative group ${isActive ? "text-rose-500" : ""}`
+            }
+            onClick={logout}
+          >
+            LOGOUT
+            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
+          </button>
+
         </ul>
       </nav>
 
       {/* ================= MOBILE SIDEBAR — LEFT (FIXED) ================= */}
       <div
-        className={`sm:hidden fixed top-0 left-0 bottom-0 w-64 bg-white shadow-2xl transform transition-transform duration-300 z-50 ${
-          visible ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`sm:hidden fixed top-0 left-0 bottom-0 w-64 bg-white shadow-2xl transform transition-transform duration-300 z-50 ${visible ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex justify-between items-center p-5 border-b">
           <h3 className="text-lg font-semibold">Menu</h3>
@@ -142,7 +129,7 @@ function Navbar() {
         </div>
 
         <ul className="flex flex-col p-5 space-y-1">
-          {["Home", "Collection", "About", "Contact"].map((item) => (
+          {["Home", "Collection", "About", "Contact", "order", "profile"].map((item) => (
             <NavLink
               key={item}
               to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
@@ -152,6 +139,15 @@ function Navbar() {
               {item.toUpperCase()}
             </NavLink>
           ))}
+          <button
+            onClick={() => {
+              setVisible(false);
+              logout();
+            }}
+            className="py-3 px-4 text-left rounded-lg hover:bg-pink-50 "
+          >
+          LOGOUT
+          </button>
         </ul>
       </div>
 

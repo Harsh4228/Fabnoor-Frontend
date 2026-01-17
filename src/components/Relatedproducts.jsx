@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
 
 const RelatedProducts = ({ category, subCategory, currentProductId }) => {
-  const { products } = useContext(ShopContext);
+  const { products, setSearch, setShowSearch } = useContext(ShopContext);
   const [related, setRelated] = useState([]);
 
   useEffect(() => {
@@ -13,7 +13,7 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
         (item) =>
           item.category === category &&
           item.subCategory === subCategory &&
-          item._id !== currentProductId // ✅ REMOVE CURRENT PRODUCT
+          item._id !== currentProductId
       );
 
       setRelated(filtered.slice(0, 5));
@@ -25,8 +25,16 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
     product?.variants?.[0]?.images?.[0] || assets.placeholder_image;
 
   /* PRICE FROM VARIANT */
-  const getPrice = (product) =>
-    product?.variants?.[0]?.sizes?.[0]?.price || 0;
+  const getPrice = (product) => product?.variants?.[0]?.price || 0;
+
+  const handleClick = () => {
+    // ✅ clear any filter/search state
+    setSearch("");
+    setShowSearch(false);
+
+    // ✅ scroll top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="my-24 bg-gradient-to-br from-pink-50 via-white to-rose-50 py-16">
@@ -47,6 +55,7 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
               <Link
                 key={item._id}
                 to={`/product/${item._id}`}
+                onClick={handleClick}
                 className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100"
               >
                 {/* IMAGE */}
@@ -82,9 +91,7 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
             ))
           ) : (
             <div className="col-span-5 text-center py-12">
-              <p className="text-gray-500 text-lg">
-                No related products found.
-              </p>
+              <p className="text-gray-500 text-lg">No related products found.</p>
             </div>
           )}
         </div>

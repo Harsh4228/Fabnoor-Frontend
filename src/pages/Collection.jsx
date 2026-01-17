@@ -1,18 +1,24 @@
 import React, { useContext, useEffect, useMemo, useState, useRef } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { FaFilter, FaChevronDown } from "react-icons/fa";
 
 const Collection = () => {
   const { products, search, showSearch } = useContext(ShopContext);
 
+  const [searchParams] = useSearchParams(); // ✅ GET URL QUERY
+  const urlCategory = searchParams.get("category"); // example: "Mens"
+  const urlSubCategory = searchParams.get("subCategory"); // optional
+
   const [showFilter, setShowFilter] = useState(false);
   const [showSort, setShowSort] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
+
   const [category, setCategory] = useState([]);
   const [subCategory, setSubCategory] = useState([]);
+
   const [sortType, setSortType] = useState("relevant");
 
   const sortRef = useRef(null);
@@ -22,8 +28,7 @@ const Collection = () => {
     p?.variants?.[0]?.images?.[0] || assets.placeholder_image;
 
   /* PRICE */
-  const getPrice = (p) =>
-    p?.variants?.[0]?.sizes?.[0]?.price || 0;
+  const getPrice = (p) => p?.variants?.[0]?.price || 0;
 
   /* FILTER OPTIONS */
   const categories = useMemo(
@@ -36,10 +41,28 @@ const Collection = () => {
     [products]
   );
 
+  /* ✅ APPLY URL FILTER ON PAGE LOAD / URL CHANGE */
+  useEffect(() => {
+    // If URL has category -> set checkbox filter automatically
+    if (urlCategory) {
+      setCategory([urlCategory]);
+    } else {
+      setCategory([]);
+    }
+
+    // Optional: support subCategory in URL too
+    if (urlSubCategory) {
+      setSubCategory([urlSubCategory]);
+    } else {
+      setSubCategory([]);
+    }
+  }, [urlCategory, urlSubCategory]);
+
   /* FILTER + SEARCH + SORT */
   useEffect(() => {
     let temp = [...products];
 
+    // SEARCH
     if (showSearch && search.trim()) {
       const q = search.toLowerCase();
       temp = temp.filter(
@@ -51,17 +74,19 @@ const Collection = () => {
       );
     }
 
-    if (category.length)
+    // CATEGORY FILTER
+    if (category.length) {
       temp = temp.filter((p) => category.includes(p.category));
+    }
 
-    if (subCategory.length)
+    // SUB CATEGORY FILTER
+    if (subCategory.length) {
       temp = temp.filter((p) => subCategory.includes(p.subCategory));
+    }
 
-    if (sortType === "low-high")
-      temp.sort((a, b) => getPrice(a) - getPrice(b));
-
-    if (sortType === "high-low")
-      temp.sort((a, b) => getPrice(b) - getPrice(a));
+    // SORT
+    if (sortType === "low-high") temp.sort((a, b) => getPrice(a) - getPrice(b));
+    if (sortType === "high-low") temp.sort((a, b) => getPrice(b) - getPrice(a));
 
     setFilteredProducts(temp);
   }, [products, category, subCategory, search, showSearch, sortType]);
@@ -79,7 +104,6 @@ const Collection = () => {
 
   return (
     <div className="pt-10 border-t px-4 md:px-10">
-
       {/* MOBILE TOP BAR */}
       <div className="flex items-center justify-between mb-6 sm:hidden">
         <button
@@ -125,11 +149,11 @@ const Collection = () => {
       </div>
 
       <div className="flex gap-8">
-
         {/* DESKTOP FILTERS */}
         <div className="hidden sm:block w-64">
           <div className="border rounded-2xl p-5 mb-6">
             <h3 className="font-semibold mb-4">Categories</h3>
+
             {categories.map((c) => (
               <label key={c} className="flex gap-2 text-sm">
                 <input

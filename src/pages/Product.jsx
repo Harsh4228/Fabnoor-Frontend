@@ -1,9 +1,4 @@
-import React, {
-  useContext,
-  useEffect,
-  useState,
-  useRef,
-} from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
@@ -26,7 +21,6 @@ const Product = () => {
   const [productData, setProductData] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedImage, setSelectedImage] = useState("");
-  const [selectedSize, setSelectedSize] = useState(null);
 
   /* ===== Preview & Zoom ===== */
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -35,17 +29,16 @@ const Product = () => {
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
 
-  /* ✅ ZOOM HINT (ONLY ADDITION) */
   const [showZoomHint, setShowZoomHint] = useState(false);
 
   /* ================= LOAD PRODUCT ================= */
   useEffect(() => {
     const product = products.find((p) => p._id === productId);
+
     if (product && product.variants?.length) {
       setProductData(product);
       setSelectedVariant(product.variants[0]);
       setSelectedImage(product.variants[0].images?.[0] || "");
-      setSelectedSize(null);
     }
   }, [productId, products]);
 
@@ -53,50 +46,30 @@ const Product = () => {
     return <div className="min-h-screen" />;
   }
 
-  /* ================= PRICE ================= */
-  const selectedPrice =
-    selectedVariant.sizes?.find((s) => s.size === selectedSize)?.price ??
-    selectedVariant.sizes?.[0]?.price ??
-    0;
+  const selectedPrice = Number(selectedVariant.price || 0);
 
-  /* ================= CART ================= */
+  /* ================= CART (ADD 1 PACK ONLY) ================= */
   const handleAddToCart = () => {
-    if (!selectedSize) {
-      toast.error("Please select a size");
+    if (Number(selectedVariant.stock || 0) <= 0) {
+      toast.error("Out of stock");
       return;
     }
-    addToCart(productData._id, selectedSize);
-    toast.success("Added to cart");
+
+    // ✅ IMPORTANT: send variant info also
+    addToCart(productData._id, selectedVariant.color, selectedVariant.type);
+
+    toast.success("Pack added to cart 🛒");
   };
 
   /* ================= WISHLIST ================= */
-  const liked =
-    selectedSize &&
-    isInWishlist(
-      productData._id,
-      selectedVariant.color,
-      selectedSize
-    );
+  const liked = isInWishlist(productData._id, selectedVariant.color);
 
   const handleWishlist = () => {
-    if (!selectedSize) {
-      toast.error("Select size to add wishlist");
-      return;
-    }
-
     if (liked) {
-      removeFromWishlist(
-        productData._id,
-        selectedVariant.color,
-        selectedSize
-      );
+      removeFromWishlist(productData._id, selectedVariant.color);
       toast.success("Removed from wishlist");
     } else {
-      addToWishlist(
-        productData._id,
-        selectedVariant.color,
-        selectedSize
-      );
+      addToWishlist(productData._id, selectedVariant.color);
       toast.success("Added to wishlist ❤️");
     }
   };
@@ -142,11 +115,10 @@ const Product = () => {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
       <div className="border-t pt-10 px-4 md:px-10">
         <div className="flex flex-col lg:flex-row gap-12 max-w-7xl mx-auto">
-
           {/* ================= IMAGES ================= */}
           <div className="flex-1 flex flex-col-reverse sm:flex-row gap-4">
             <div className="flex sm:flex-col gap-3 sm:w-[20%]">
-              {selectedVariant.images.map((img, i) => (
+              {(selectedVariant.images || []).map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(img)}
@@ -181,14 +153,10 @@ const Product = () => {
           <div className="flex-1 bg-white rounded-2xl shadow-lg p-6 md:p-8">
             <div className="flex justify-between mb-2">
               <h1 className="text-3xl font-serif">{productData.name}</h1>
+
               <button
                 onClick={handleWishlist}
-                disabled={!selectedSize}
-                className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  !selectedSize
-                    ? "bg-gray-100 opacity-40"
-                    : "bg-pink-50 hover:scale-110"
-                }`}
+                className="w-12 h-12 rounded-full flex items-center justify-center bg-pink-50 hover:scale-110 transition"
               >
                 {liked ? (
                   <FaHeart className="text-pink-500 text-2xl" />
@@ -202,9 +170,18 @@ const Product = () => {
               <b>Type:</b> {selectedVariant.type}
             </p>
 
-            <p className="text-4xl font-bold text-pink-500 mb-6">
+            <p className="text-4xl font-bold text-pink-500 mb-2">
               {currency}
               {selectedPrice}
+            </p>
+
+            <p className="text-sm text-gray-500 mb-6">
+              Stock:{" "}
+              <span className="font-semibold">
+                {Number(selectedVariant.stock || 0) > 0
+                  ? selectedVariant.stock
+                  : "Out of stock"}
+              </span>
             </p>
 
             <p className="text-gray-600 leading-relaxed mb-8">
@@ -217,11 +194,10 @@ const Product = () => {
               <div className="flex gap-3 flex-wrap">
                 {productData.variants.map((v) => (
                   <button
-                    key={v.color}
+                    key={`${v.color}-${v.type}`}
                     onClick={() => {
                       setSelectedVariant(v);
-                      setSelectedImage(v.images[0]);
-                      setSelectedSize(null);
+                      setSelectedImage(v.images?.[0] || "");
                     }}
                     className={`px-4 py-2 border rounded-lg ${
                       v.color === selectedVariant.color
@@ -235,34 +211,36 @@ const Product = () => {
               </div>
             </div>
 
-            {/* SIZES */}
+            {/* PACK SIZES */}
             <div className="mb-8">
-              <p className="font-semibold mb-2">Select Size</p>
+              <p className="font-semibold mb-2">Pack Includes Sizes</p>
+
               <div className="flex gap-3 flex-wrap">
-                {selectedVariant.sizes.map((s) => (
-                  <button
-                    key={s.size}
-                    disabled={s.stock === 0}
-                    onClick={() => setSelectedSize(s.size)}
-                    className={`px-4 py-2 border rounded-lg ${
-                      selectedSize === s.size
-                        ? "border-pink-500 bg-pink-50"
-                        : s.stock === 0
-                        ? "opacity-40 cursor-not-allowed"
-                        : "border-gray-200"
-                    }`}
+                {(selectedVariant.sizes || []).map((size) => (
+                  <span
+                    key={size}
+                    className="px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 font-medium"
                   >
-                    {s.size}
-                  </button>
+                    {size}
+                  </span>
                 ))}
               </div>
+
+              <p className="text-xs text-gray-500 mt-3">
+                Wholesale Pack: all sizes are included automatically.
+              </p>
             </div>
 
             <button
               onClick={handleAddToCart}
-              className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-4 rounded-xl font-semibold"
+              disabled={Number(selectedVariant.stock || 0) <= 0}
+              className={`w-full py-4 rounded-xl font-semibold text-white transition ${
+                Number(selectedVariant.stock || 0) <= 0
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-gradient-to-r from-pink-500 to-rose-500"
+              }`}
             >
-              ADD TO CART
+              ADD PACK TO CART
             </button>
           </div>
         </div>
@@ -285,7 +263,6 @@ const Product = () => {
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-5xl h-[85vh] overflow-hidden flex items-center justify-center"
           >
-            {/* CLOSE BUTTON */}
             <button
               onClick={closePreview}
               className="absolute top-4 right-4 z-50 w-10 h-10 bg-white rounded-full flex items-center justify-center text-2xl font-bold text-gray-700 hover:bg-red-50 hover:text-red-500"
@@ -293,10 +270,8 @@ const Product = () => {
               ×
             </button>
 
-            {/* ✅ DOUBLE TAP HINT */}
             {showZoomHint && (
-              <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 
-                              bg-black/70 text-white px-4 py-2 rounded-full text-sm">
+              <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
                 Double tap to zoom
               </div>
             )}

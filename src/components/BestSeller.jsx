@@ -22,7 +22,7 @@ const BestSeller = () => {
     p?.variants?.[0]?.images?.[0] || assets.placeholder_image;
 
   const getPrice = (p) =>
-    p?.variants?.[0]?.sizes?.[0]?.price || 0;
+    p?.variants?.[0]?.price || 0;
 
   const toggleWishlist = (id, e) => {
     e.preventDefault();

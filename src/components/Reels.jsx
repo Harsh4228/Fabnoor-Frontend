@@ -70,100 +70,95 @@ const Reels = () => {
   }
 
   return (
-    <div className="py-8 bg-gradient-to-br from-pink-50 via-white to-rose-50">
-      <div className="container mx-auto px-4">
+  <div className="w-full py-8 bg-gradient-to-br from-pink-50 via-white to-rose-50">
+    <div className="w-full px-0">
 
-        {/* TITLE */}
-        <div className="flex items-center justify-center gap-3 mb-5">
-          <div className="h-px w-6 bg-gradient-to-r from-transparent to-rose-300" />
-          <h2 className="text-xl md:text-2xl font-serif text-gray-900">
-            LATEST <span className="text-rose-500">VIDEOS</span>
-          </h2>
-          <div className="h-px w-6 bg-gradient-to-l from-transparent to-rose-300" />
-        </div>
+      {/* TITLE */}
+      <div className="flex items-center justify-center gap-3 mb-5">
+        <div className="h-px w-6 bg-gradient-to-r from-transparent to-rose-300" />
+        <h2 className="text-xl md:text-2xl font-serif text-gray-900">
+          LATEST <span className="text-rose-500">VIDEOS</span>
+        </h2>
+        <div className="h-px w-6 bg-gradient-to-l from-transparent to-rose-300" />
+      </div>
 
-        {/* REELS STRIP */}
-        <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory">
+      {/* REELS STRIP */}
+      <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide snap-x snap-mandatory px-2">
+        {reels.map((reel) => {
+          const liked = reel.likes?.includes("me");
 
-          {reels.map((reel) => {
-            const liked = reel.likes?.includes("me");
+          return (
+            <div
+              key={reel._id}
+              className="
+                relative
+                min-w-[220px] sm:min-w-[250px] lg:min-w-[280px]
+                h-[380px] sm:h-[420px] lg:h-[460px]
+                bg-black rounded-xl overflow-hidden
+                shadow-md hover:shadow-lg
+                transition-all duration-300
+                snap-center group
+              "
+            >
+              {/* VIDEO */}
+              <video
+                src={reel.videoUrl}
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
 
-            return (
-              <div
-                key={reel._id}
-                className="
-                  relative
-                  min-w-[200px] sm:min-w-[220px] lg:min-w-[240px]
-                  h-[360px] sm:h-[390px] lg:h-[420px]
-                  bg-black rounded-xl overflow-hidden
-                  shadow-md hover:shadow-lg
-                  transition-all duration-300
-                  snap-center group
-                "
-              >
-                {/* VIDEO */}
-                <video
-                  src={reel.videoUrl}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                />
+              {/* OVERLAY */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                {/* OVERLAY */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              {/* CONTENT */}
+              <div className="absolute inset-0 flex flex-col justify-end p-3">
+                <p className="text-white text-xs mb-2 line-clamp-2 font-medium">
+                  {reel.caption}
+                </p>
 
-                {/* CONTENT */}
-                <div className="absolute inset-0 flex flex-col justify-end p-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => toggleLike(reel._id)}
+                    className="flex items-center gap-1.5 text-white hover:scale-105 transition"
+                  >
+                    {liked ? (
+                      <FaHeart className="text-lg text-pink-500" />
+                    ) : (
+                      <FaRegHeart className="text-lg" />
+                    )}
+                    <span className="text-xs font-semibold">
+                      {reel.likes?.length || 0}
+                    </span>
+                  </button>
 
-                  {/* CAPTION */}
-                  <p className="text-white text-xs mb-2 line-clamp-2 font-medium">
-                    {reel.caption}
-                  </p>
-
-                  {/* ACTIONS */}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => toggleLike(reel._id)}
-                      className="flex items-center gap-1.5 text-white hover:scale-105 transition"
-                    >
-                      {liked ? (
-                        <FaHeart className="text-lg text-pink-500" />
-                      ) : (
-                        <FaRegHeart className="text-lg" />
-                      )}
-                      <span className="text-xs font-semibold">
-                        {reel.likes?.length || 0}
-                      </span>
-                    </button>
-
-                    <button className="ml-auto px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-[11px] rounded-full hover:bg-white/30 transition">
-                      View
-                    </button>
-                  </div>
-                </div>
-
-                {/* PLAY ICON */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                  <div className="w-12 h-12 bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
+                  <button className="ml-auto px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-[11px] rounded-full hover:bg-white/30 transition">
+                    View
+                  </button>
                 </div>
               </div>
-            );
-          })}
 
-        </div>
+              {/* PLAY ICON */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <div className="w-12 h-12 bg-white/25 backdrop-blur-sm rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
-    </div>
-  );
-};
 
+    </div>
+  </div>
+);
+}
 export default Reels;

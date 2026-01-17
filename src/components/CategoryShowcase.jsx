@@ -42,25 +42,39 @@ const CategoryShowcase = () => {
             <div
               key={cat.name}
               onClick={() => navigate(`/collection?category=${cat.name}`)}
-              className="min-w-[140px] md:min-w-[160px] text-center cursor-pointer group"
+              className="min-w-[160px] md:min-w-[200px] text-center cursor-pointer group"
             >
               {/* Image */}
               <div className="relative mx-auto mb-4">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-200 to-pink-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 scale-110 blur-md" />
+                {/* Glow (RECTANGLE) */}
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-rose-200 to-pink-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 scale-105 blur-md" />
 
-                <div className="relative w-32 h-44 md:w-36 md:h-52 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-transparent group-hover:border-rose-300 transition-all duration-300 shadow-md group-hover:shadow-xl">
+                {/* RECTANGLE CARD */}
+                <div className="relative w-36 h-52 md:w-44 md:h-64 mx-auto rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 group-hover:border-rose-300 transition-all duration-300 shadow-md group-hover:shadow-xl">
                   <img
                     src={cat.image}
                     alt={cat.name}
-                    className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
                   />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
 
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-rose-500 rounded-full border-2 border-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                {/* Arrow Icon */}
+                <div className="absolute bottom-2 right-2 w-8 h-8 bg-rose-500 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -74,7 +88,8 @@ const CategoryShowcase = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      {/* Hide scrollbar */}
+      <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }

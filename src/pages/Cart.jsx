@@ -1,63 +1,85 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { assets } from "../assets/assets";
 import CartTotal from "../components/CartTotal";
+import { toast } from "react-toastify";
 
 const Cart = () => {
-  const {
-    products,
-    cartItems,
-    currency,
-    updateQuantity,
-    navigate,
-  } = useContext(ShopContext);
+  const { products, cartItems, currency, updateQuantity, navigate } =
+    useContext(ShopContext);
 
   const [cartData, setCartData] = useState([]);
+  const prevCartDataRef = useRef([]);
 
-  /* ================= BUILD CART DATA ================= */
+  /* ================= BUILD CART DATA (WHOLESALE ONLY) ================= */
   useEffect(() => {
     const temp = [];
 
     for (const productId in cartItems) {
-      const sizes = cartItems[productId];
-      if (!sizes) continue;
+      const item = cartItems[productId];
 
-      for (const size in sizes) {
-        const qty = Number(sizes[size]);
-        if (qty > 0) {
-          temp.push({
-            productId,
-            size: String(size),
-            quantity: qty,
-          });
-        }
+      // ✅ only new format allowed
+      const qty = Number(item?.quantity || 0);
+
+      if (qty > 0) {
+        temp.push({
+          productId,
+          quantity: qty,
+          color: item?.color || "",
+          type: item?.type || "",
+        });
       }
     }
 
     setCartData(temp);
   }, [cartItems]);
 
-  /* ================= FIND VARIANT + SIZE ================= */
-  const getVariantData = (product, size) => {
-    if (!product?.variants) return null;
+  /* ================= POPUP ON ADD ITEM ================= */
+  useEffect(() => {
+    const prev = prevCartDataRef.current;
+    const current = cartData;
 
-    for (const variant of product.variants) {
-      const sizeData = variant.sizes.find(
-        (s) => String(s.size) === String(size)
-      );
-
-      if (sizeData) {
-        return {
-          price: Number(sizeData.price) || 0,
-          image:
-            Array.isArray(variant.images) && variant.images.length
-              ? variant.images[0]
-              : assets.placeholder_image,
-        };
-      }
+    if (prev.length === 0 && current.length === 0) {
+      prevCartDataRef.current = current;
+      return;
     }
-    return null;
+
+    const getTotalQty = (arr) =>
+      arr.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+
+    const prevQty = getTotalQty(prev);
+    const currentQty = getTotalQty(current);
+
+    if (currentQty > prevQty) {
+      toast.success("Item added successfully 🛒", { autoClose: 1200 });
+    }
+
+    prevCartDataRef.current = current;
+  }, [cartData]);
+
+  /* ================= GET WHOLESALE VARIANT ================= */
+  const getWholesaleVariant = (product, color, type) => {
+    if (!product?.variants?.length) return null;
+
+    // try match selected variant
+    let v =
+      product.variants.find((x) => x.color === color && x.type === type) ||
+      product.variants[0];
+
+    if (!v) return null;
+
+    return {
+      price: Number(v.price) || 0,
+      image:
+        Array.isArray(v.images) && v.images.length
+          ? v.images[0]
+          : assets.placeholder_image,
+      stock: Number(v.stock) || 0,
+      sizes: Array.isArray(v.sizes) ? v.sizes : [],
+      color: v.color,
+      type: v.type,
+    };
   };
 
   return (
@@ -71,13 +93,23 @@ const Cart = () => {
         {cartData.length === 0 && (
           <div className="text-center py-20">
             <div className="w-32 h-32 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-16 h-16 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              <svg
+                className="w-16 h-16 text-pink-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
               </svg>
             </div>
             <p className="text-gray-500 text-lg mb-4">Your cart is empty</p>
-            <button 
-              onClick={() => navigate('/collection')}
+            <button
+              onClick={() => navigate("/collection")}
               className="px-6 py-3 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition"
             >
               Continue Shopping
@@ -88,42 +120,54 @@ const Cart = () => {
         {/* CART ITEMS */}
         <div className="space-y-4">
           {cartData.map((item) => {
-            const product = products.find(
-              (p) => p._id === item.productId
-            );
+            const product = products.find((p) => p._id === item.productId);
             if (!product) return null;
 
-            const variantData = getVariantData(product, item.size);
-            if (!variantData) return null;
-
-            const { price, image } = variantData;
+            const v = getWholesaleVariant(product, item.color, item.type);
+            if (!v) return null;
 
             return (
               <div
-                key={`${item.productId}-${item.size}`}
+                key={item.productId}
                 className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-4 md:p-6 border border-gray-100"
               >
                 <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto_auto] gap-4 md:gap-6 items-center">
-                  
                   {/* PRODUCT INFO */}
                   <div className="flex gap-4 items-center">
                     <div className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-br from-pink-50 to-rose-50 rounded-lg overflow-hidden flex-shrink-0">
                       <img
-                        src={image}
+                        src={v.image}
                         alt={product.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
+
                     <div>
-                      <p className="font-semibold text-gray-900 mb-1">{product.name}</p>
-                      <p className="text-sm text-gray-500">Size: <span className="font-medium">{item.size}</span></p>
+                      <p className="font-semibold text-gray-900 mb-1">
+                        {product.name}
+                      </p>
+
+                      <p className="text-sm text-gray-500">
+                        Variant:{" "}
+                        <span className="font-medium">
+                          {v.color} / {v.type}
+                        </span>
+                      </p>
+
+                      <p className="text-sm text-gray-500">
+                        Pack Sizes:{" "}
+                        <span className="font-medium">
+                          {v.sizes.join(", ")}
+                        </span>
+                      </p>
                     </div>
                   </div>
 
                   {/* PRICE */}
                   <div className="flex items-center gap-2 md:justify-center">
                     <span className="text-lg font-bold text-pink-500">
-                      {currency}{price}
+                      {currency}
+                      {v.price}
                     </span>
                   </div>
 
@@ -132,53 +176,46 @@ const Cart = () => {
                     <button
                       onClick={() => {
                         const newQty = item.quantity - 1;
-                        if (newQty >= 1) {
-                          updateQuantity(item.productId, item.size, newQty);
-                        }
+                        if (newQty >= 1) updateQuantity(item.productId, newQty);
                       }}
                       className="w-8 h-8 bg-white rounded-md flex items-center justify-center hover:bg-pink-50 transition"
                     >
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                      </svg>
+                      −
                     </button>
-                    
+
                     <input
                       type="number"
                       min={1}
                       value={item.quantity}
                       onChange={(e) => {
                         const val = Number(e.target.value);
-                        if (val >= 1) {
-                          updateQuantity(item.productId, item.size, val);
-                        }
+                        if (val >= 1) updateQuantity(item.productId, val);
                       }}
                       className="w-16 text-center border-0 bg-transparent font-semibold text-gray-900 focus:outline-none"
                     />
-                    
+
                     <button
-                      onClick={() => updateQuantity(item.productId, item.size, item.quantity + 1)}
+                      onClick={() =>
+                        updateQuantity(item.productId, item.quantity + 1)
+                      }
                       className="w-8 h-8 bg-white rounded-md flex items-center justify-center hover:bg-pink-50 transition"
                     >
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
+                      +
                     </button>
                   </div>
 
                   {/* TOTAL & REMOVE */}
                   <div className="flex items-center gap-4 justify-between md:justify-end">
                     <p className="font-bold text-xl text-gray-900">
-                      {currency}{price * item.quantity}
+                      {currency}
+                      {v.price * item.quantity}
                     </p>
-                    
+
                     <button
-                      onClick={() => updateQuantity(item.productId, item.size, 0)}
+                      onClick={() => updateQuantity(item.productId, 0)}
                       className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center hover:bg-red-100 transition"
                     >
-                      <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                      🗑️
                     </button>
                   </div>
                 </div>
