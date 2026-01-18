@@ -1,6 +1,8 @@
 import React, { useContext, useMemo } from "react";
 import { ShopContext } from "../context/ShopContext";
-import { IoClose } from "react-icons/io5";
+import { assets } from "../assets/assets";
+import { Link } from "react-router-dom";
+import { FaTimes } from "react-icons/fa";
 
 const CartDrawer = () => {
   const {
@@ -8,164 +10,184 @@ const CartDrawer = () => {
     setShowCartDrawer,
     cartItems,
     products,
+    currency,
     getCartAmount,
     delivery_fee,
+    updateQuantity,
     navigate,
   } = useContext(ShopContext);
 
-  const closeDrawer = () => setShowCartDrawer(false);
-
-  // ✅ Convert cartItems into array (supports both structures)
+  // convert cart object to array for rendering
   const cartList = useMemo(() => {
-    const list = [];
+    const arr = [];
 
-    for (const productId in cartItems) {
-      const product = products.find((p) => p._id === productId);
+    for (const pid in cartItems) {
+      const product = products.find((p) => p._id === pid);
       if (!product) continue;
 
-      const cartValue = cartItems[productId];
+      const qty = Number(cartItems[pid]?.quantity || 0);
+      if (qty <= 0) continue;
 
-      // CASE 1: { quantity, color, type }
-      if (cartValue && typeof cartValue === "object" && "quantity" in cartValue) {
-        const qty = Number(cartValue.quantity || 0);
-        if (qty <= 0) continue;
+      const color = cartItems[pid]?.color || "";
+      const type = cartItems[pid]?.type || "";
 
-        list.push({
-          productId,
-          name: product.name,
-          qty,
-          image:
-            product?.variants?.[0]?.images?.[0] ||
-            product?.image?.[0] ||
-            product?.images?.[0] ||
-            "",
-        });
-        continue;
-      }
+      const variant =
+        product?.variants?.find((v) => v.color === color && v.type === type) ||
+        product?.variants?.[0];
 
-      // CASE 2: { S: 2, M: 1 }
-      if (cartValue && typeof cartValue === "object") {
-        let totalQty = 0;
-        for (const key in cartValue) {
-          totalQty += Number(cartValue[key] || 0);
-        }
-        if (totalQty <= 0) continue;
-
-        list.push({
-          productId,
-          name: product.name,
-          qty: totalQty,
-          image:
-            product?.variants?.[0]?.images?.[0] ||
-            product?.image?.[0] ||
-            product?.images?.[0] ||
-            "",
-        });
-      }
+      arr.push({
+        productId: pid,
+        name: product.name,
+        qty,
+        price: Number(variant?.price || 0),
+        image: variant?.images?.[0] || assets.placeholder_image,
+        color: variant?.color || color,
+        type: variant?.type || type,
+      });
     }
 
-    return list;
+    return arr;
   }, [cartItems, products]);
 
-  const total = getCartAmount() + delivery_fee;
+  const subtotal = getCartAmount();
+  const total = subtotal + delivery_fee;
+
+  if (!showCartDrawer) return null;
 
   return (
-    <>
-      {/* BACKDROP */}
+    <div className="fixed inset-0 z-[9999]">
+      {/* overlay */}
       <div
-        className={`fixed inset-0 bg-black/40 z-40 transition-all duration-300 ${
-          showCartDrawer ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
-        onClick={closeDrawer}
+        onClick={() => setShowCartDrawer(false)}
+        className="absolute inset-0 bg-black/40"
       />
 
-      {/* DRAWER */}
-      <div
-        className={`fixed top-0 right-0 h-full w-[92%] sm:w-[420px] bg-white z-50 shadow-2xl transform transition-transform duration-300 ${
-          showCartDrawer ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        {/* HEADER */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">Cart</h2>
+      {/* drawer */}
+      <div className="absolute right-0 top-0 h-full w-[85%] sm:w-[420px] bg-white shadow-2xl flex flex-col">
+        {/* header */}
+        <div className="flex items-center justify-between px-4 py-4 border-b">
+          <h2 className="text-lg font-semibold">Your Cart</h2>
           <button
-            onClick={closeDrawer}
-            className="p-2 rounded-full hover:bg-gray-100"
+            onClick={() => setShowCartDrawer(false)}
+            className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
           >
-            <IoClose size={24} />
+            <FaTimes />
           </button>
         </div>
 
-        {/* BODY */}
-        <div className="p-4 overflow-y-auto h-[calc(100%-170px)]">
+        {/* items (scrollable) */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {cartList.length === 0 ? (
-            <p className="text-gray-500">Your cart is empty</p>
+            <div className="text-center text-gray-500 mt-10">
+              Cart is empty 🛒
+            </div>
           ) : (
-            <div className="space-y-4">
-              {cartList.map((item) => (
-                <div
-                  key={item.productId}
-                  className="flex gap-3 border rounded-xl p-3"
-                >
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  />
+            cartList.map((item) => (
+              <div
+                key={item.productId}
+                className="flex gap-3 border rounded-xl p-3"
+              >
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-16 h-16 rounded-lg object-cover border"
+                />
 
-                  <div className="flex-1">
-                    <p className="font-semibold">{item.name}</p>
-                    <p className="text-sm text-gray-500">Qty: {item.qty}</p>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold line-clamp-1">
+                    {item.name}
+                  </p>
+
+                  <p className="text-xs text-gray-500">
+                    {item.color ? `Color: ${item.color}` : ""}
+                    {item.type ? ` | Type: ${item.type}` : ""}
+                  </p>
+
+                  <p className="text-sm font-bold text-rose-500 mt-1">
+                    {currency}
+                    {item.price}
+                  </p>
+
+                  {/* qty controls */}
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      onClick={() =>
+                        updateQuantity(item.productId, item.qty - 1)
+                      }
+                      className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-gray-50"
+                    >
+                      -
+                    </button>
+
+                    <span className="w-8 text-center font-semibold">
+                      {item.qty}
+                    </span>
+
+                    <button
+                      onClick={() =>
+                        updateQuantity(item.productId, item.qty + 1)
+                      }
+                      className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-gray-50"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))
           )}
         </div>
 
-        {/* FOOTER */}
-        <div className="p-4 border-t">
-          <div className="flex justify-between text-sm text-gray-700">
+        {/* footer fixed */}
+        <div className="border-t px-4 py-4 bg-white">
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
             <span>Subtotal</span>
-            <span>₹{getCartAmount()}</span>
+            <span>
+              {currency}
+              {subtotal}
+            </span>
           </div>
 
-          <div className="flex justify-between text-sm text-gray-700 mt-2">
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
             <span>Delivery</span>
-            <span>₹{delivery_fee}</span>
+            <span>
+              {currency}
+              {delivery_fee}
+            </span>
           </div>
 
-          <div className="flex justify-between font-semibold text-base mt-3">
+          <div className="flex justify-between text-base font-bold mb-4">
             <span>Total</span>
-            <span>₹{total}</span>
+            <span>
+              {currency}
+              {total}
+            </span>
           </div>
 
-          <div className="mt-4 flex gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                closeDrawer();
-                navigate("/cart");
-              }}
-              className="w-full text-center border border-gray-300 rounded-xl py-3 font-semibold hover:bg-gray-50"
-            >
-              View Cart
-            </button>
+          <button
+            disabled={cartList.length === 0}
+            onClick={() => {
+              setShowCartDrawer(false);
+              navigate("/cart");
+            }}
+            className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-3 rounded-xl font-semibold disabled:opacity-50"
+          >
+            View Cart
+          </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                closeDrawer();
-                navigate("/place-order");
-              }}
-              className="w-full bg-pink-500 text-white rounded-xl py-3 font-semibold hover:bg-pink-600"
-            >
-              Checkout
-            </button>
-          </div>
+          <button
+            disabled={cartList.length === 0}
+            onClick={() => {
+              setShowCartDrawer(false);
+              navigate("/place-order");
+            }}
+            className="w-full mt-3 border border-rose-500 text-rose-500 py-3 rounded-xl font-semibold disabled:opacity-50"
+          >
+            Checkout
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
