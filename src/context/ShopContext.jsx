@@ -13,6 +13,9 @@ export const ShopContextProvider = ({ children }) => {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
+  // ✅ SIDE CART DRAWER STATE
+  const [showCartDrawer, setShowCartDrawer] = useState(false);
+
   /* ================= SAFE CART NORMALIZER ================= */
   const normalizeCart = (savedCart) => {
     if (!savedCart || typeof savedCart !== "object") return {};
@@ -129,6 +132,9 @@ export const ShopContextProvider = ({ children }) => {
 
       return updated;
     });
+
+    // ✅ OPEN SIDE CART DRAWER WHEN ADD ITEM
+    setShowCartDrawer(true);
 
     if (!token) return;
 
@@ -314,6 +320,10 @@ export const ShopContextProvider = ({ children }) => {
         setSearch,
         showSearch,
         setShowSearch,
+
+        // ✅ CART DRAWER
+        showCartDrawer,
+        setShowCartDrawer,
 
         cartItems,
         setCartItems,

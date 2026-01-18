@@ -42,7 +42,7 @@ const CategoryShowcase = () => {
             <div
               key={cat.name}
               onClick={() => navigate(`/collection?category=${cat.name}`)}
-              className="min-w-[160px] md:min-w-[200px] text-center cursor-pointer group"
+              className="min-w-[130px] md:min-w-[150px] text-center cursor-pointer group"
             >
               {/* Image */}
               <div className="relative mx-auto mb-4">

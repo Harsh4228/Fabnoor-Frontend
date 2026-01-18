@@ -20,6 +20,8 @@ import Order from "./pages/Order";
 import Verify from "./pages/Verify";
 import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
+import CartDrawer from "./components/CartDrawer";
+
 
 // 🔥 NEW STATIC PAGES
 import Delivery from "./pages/Delivery";
@@ -35,6 +37,7 @@ const App = () => {
       <ToastContainer />
 
       <Navbar />
+      <CartDrawer />  
 
       <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
         <SearchBar />
