@@ -20,8 +20,12 @@ const LatestCollection = () => {
   const getImage = (p) =>
     p?.variants?.[0]?.images?.[0] || assets.placeholder_image;
 
-  const getPrice = (p) =>
-    p?.variants?.[0]?.price || 0;
+  const getPrice = (p) => {
+  const packPrice = Number(p?.variants?.[0]?.price || 0);
+  const totalPieces = Number(p?.variants?.[0]?.sizes?.length || 1);
+  return packPrice / totalPieces;
+};
+
 
   const toggleWishlist = (id, e) => {
     e.preventDefault();

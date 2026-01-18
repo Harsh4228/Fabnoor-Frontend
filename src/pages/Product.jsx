@@ -46,7 +46,11 @@ const Product = () => {
     return <div className="min-h-screen" />;
   }
 
-  const selectedPrice = Number(selectedVariant.price || 0);
+  const sizesArr = selectedVariant?.sizes || [];
+const packPrice = Number(selectedVariant?.price || 0);
+const piecesCount = sizesArr.length || 1;
+const perPiecePrice = packPrice / piecesCount;
+
 
   /* ================= CART (ADD 1 PACK ONLY) ================= */
   const handleAddToCart = () => {
@@ -170,10 +174,22 @@ const Product = () => {
               <b>Type:</b> {selectedVariant.type}
             </p>
 
-            <p className="text-4xl font-bold text-pink-500 mb-2">
-              {currency}
-              {selectedPrice}
-            </p>
+           <p className="text-4xl font-bold text-pink-500 mb-1">
+  {currency}
+  {Math.round(perPiecePrice)}
+  <span className="text-sm font-medium text-gray-500 ml-2">(Per Piece)</span>
+</p>
+
+<p className="text-sm text-gray-600 mb-4">
+  Pack Price:{" "}
+  <span className="font-semibold text-gray-800">
+    {currency}
+    {packPrice}
+  </span>{" "}
+  | Total Pieces:{" "}
+  <span className="font-semibold text-gray-800">{piecesCount}</span>
+</p>
+
 
             <p className="text-sm text-gray-500 mb-6">
               Stock:{" "}

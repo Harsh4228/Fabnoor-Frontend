@@ -78,7 +78,20 @@ export const ShopContextProvider = ({ children }) => {
 
   const [products, setProducts] = useState([]);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
+
+  // ✅ wishlist in DB (for logged in users)
   const [wishlist, setWishlist] = useState([]);
+
+  // ✅ guest wishlist (for not logged in users)
+  const [guestWishlist, setGuestWishlist] = useState(() => {
+    const saved = localStorage.getItem("guestWishlist");
+    if (!saved) return [];
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return [];
+    }
+  });
 
   const navigate = useNavigate();
 
@@ -91,6 +104,11 @@ export const ShopContextProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
   }, [cartItems]);
+
+  /* ================= SAVE GUEST WISHLIST LOCAL ================= */
+  useEffect(() => {
+    localStorage.setItem("guestWishlist", JSON.stringify(guestWishlist));
+  }, [guestWishlist]);
 
   /* ================= FIND VARIANT ================= */
   const findVariant = (product, color, type) => {
@@ -136,6 +154,7 @@ export const ShopContextProvider = ({ children }) => {
     // ✅ OPEN SIDE CART DRAWER WHEN ADD ITEM
     setShowCartDrawer(true);
 
+    // ✅ if no token, don't sync with backend (no error toast)
     if (!token) return;
 
     try {
@@ -145,13 +164,14 @@ export const ShopContextProvider = ({ children }) => {
         authHeader
       );
 
-      // ✅ update from DB response
       if (data.success) {
         setCartItems(normalizeCart(data.cartData || {}));
       }
     } catch (err) {
       console.log("Cart sync add error:", err);
-      toast.error("Failed to sync cart");
+      toast.error(
+        err?.response?.data?.message || err?.message || "Failed to sync cart"
+      );
     }
   };
 
@@ -180,13 +200,14 @@ export const ShopContextProvider = ({ children }) => {
         authHeader
       );
 
-      // ✅ update from DB response
       if (data.success) {
         setCartItems(normalizeCart(data.cartData || {}));
       }
     } catch (err) {
       console.log("Cart sync update error:", err);
-      toast.error("Failed to sync cart");
+      toast.error(
+        err?.response?.data?.message || err?.message || "Failed to sync cart"
+      );
     }
   };
 
@@ -239,7 +260,7 @@ export const ShopContextProvider = ({ children }) => {
     }
   };
 
-  /* ================= WISHLIST ================= */
+  /* ================= WISHLIST (DB) ================= */
   const getWishlist = async () => {
     if (!token) {
       setWishlist([]);
@@ -255,9 +276,29 @@ export const ShopContextProvider = ({ children }) => {
     }
   };
 
+  /* ================= GUEST WISHLIST HELPERS ================= */
+  const addGuestWishlist = (productId, color = "") => {
+    setGuestWishlist((prev) => {
+      const exists = prev.some(
+        (x) => x.productId === productId && x.color === color
+      );
+      if (exists) return prev;
+      return [...prev, { productId, color }];
+    });
+  };
+
+  const removeGuestWishlist = (productId, color = "") => {
+    setGuestWishlist((prev) =>
+      prev.filter((x) => !(x.productId === productId && x.color === color))
+    );
+  };
+
+  /* ================= ADD TO WISHLIST ================= */
   const addToWishlist = async (productId, color) => {
+    // ✅ if user not logged in => store in guest wishlist
     if (!token) {
-      navigate("/login");
+      addGuestWishlist(productId, color);
+      toast.success("Added to wishlist ❤️ (saved locally)");
       return;
     }
 
@@ -268,13 +309,21 @@ export const ShopContextProvider = ({ children }) => {
         authHeader
       );
       getWishlist();
-    } catch {
-      toast.error("Failed to add to wishlist");
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message || err?.message || "Failed to add to wishlist"
+      );
     }
   };
 
+  /* ================= REMOVE FROM WISHLIST ================= */
   const removeFromWishlist = async (productId, color) => {
-    if (!token) return;
+    // ✅ if user not logged in => remove from guest wishlist
+    if (!token) {
+      removeGuestWishlist(productId, color);
+      toast.success("Removed from wishlist");
+      return;
+    }
 
     try {
       await axios.post(
@@ -283,15 +332,54 @@ export const ShopContextProvider = ({ children }) => {
         authHeader
       );
       getWishlist();
-    } catch {
-      toast.error("Failed to remove from wishlist");
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to remove from wishlist"
+      );
     }
   };
 
+  /* ================= IS IN WISHLIST ================= */
   const isInWishlist = (productId, color) => {
-    return wishlist.some(
-      (item) => item.productId?._id === productId && item.color === color
+    // if logged in => check DB wishlist
+    if (token) {
+      return wishlist.some(
+        (item) => item.productId?._id === productId && item.color === color
+      );
+    }
+
+    // if guest => check local wishlist
+    return guestWishlist.some(
+      (item) => item.productId === productId && item.color === color
     );
+  };
+
+  /* ================= MERGE GUEST WISHLIST TO DB AFTER LOGIN ================= */
+  const mergeGuestWishlistToDB = async () => {
+    if (!token) return;
+    if (!guestWishlist.length) return;
+
+    try {
+      // add all guest items into DB
+      for (const item of guestWishlist) {
+        await axios.post(
+          `${backendUrl}/api/wishlist/add`,
+          { productId: item.productId, color: item.color },
+          authHeader
+        );
+      }
+
+      // clear guest wishlist after merge
+      setGuestWishlist([]);
+      localStorage.removeItem("guestWishlist");
+
+      // reload DB wishlist
+      getWishlist();
+    } catch (err) {
+      console.log("Wishlist merge error:", err);
+    }
   };
 
   /* ================= LOAD ON START ================= */
@@ -305,8 +393,14 @@ export const ShopContextProvider = ({ children }) => {
     else setCartItems({});
   }, [token]);
 
+  // wishlist load
   useEffect(() => {
     getWishlist();
+  }, [token]);
+
+  // ✅ merge guest wishlist after login
+  useEffect(() => {
+    if (token) mergeGuestWishlistToDB();
   }, [token]);
 
   return (
@@ -332,11 +426,13 @@ export const ShopContextProvider = ({ children }) => {
         getCartItems,
         getCartAmount,
 
+        // wishlist
         wishlist,
         addToWishlist,
         removeFromWishlist,
         isInWishlist,
 
+        // auth
         navigate,
         token,
         setToken,
