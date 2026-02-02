@@ -1,14 +1,17 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { assets } from "../assets/assets";
 import CartTotal from "../components/CartTotal";
+import { getPerPiecePriceFromVariant, formatNumber } from "../utils/price";
+import SetInfo from "../components/SetInfo";
 import { toast } from "react-toastify";
 
 const Cart = () => {
   const { products, cartItems, currency, updateQuantity, navigate } =
     useContext(ShopContext);
 
+    
   const [cartData, setCartData] = useState([]);
   const prevCartDataRef = useRef([]);
 
@@ -86,7 +89,10 @@ const Cart = () => {
     <div className="border-t pt-14 min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
       <div className="container mx-auto px-4 md:px-8">
         <div className="text-3xl mb-8 flex items-center gap-3">
-          <Title text1="YOUR" text2="CART" />
+          <div className="flex items-center gap-3">
+            <Title text1="YOUR" text2="CART" />
+            <SetInfo compact />
+          </div>
         </div>
 
         {/* EMPTY CART */}
@@ -165,10 +171,12 @@ const Cart = () => {
 
                   {/* PRICE */}
                   <div className="flex items-center gap-2 md:justify-center">
-                    <span className="text-lg font-bold text-pink-500">
-                      {currency}
-                      {v.price}
-                    </span>
+                    <div>
+                      <div className="text-lg font-bold text-pink-500">
+                        {currency}{formatNumber(v.price)}
+                      </div>
+                      <div className="text-xs text-gray-500">(Set) {currency}{formatNumber(getPerPiecePriceFromVariant(v))}/pc</div>
+                    </div>
                   </div>
 
                   {/* QUANTITY CONTROLS */}

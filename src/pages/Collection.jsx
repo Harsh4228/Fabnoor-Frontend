@@ -1,9 +1,11 @@
-import React, { useContext, useEffect, useMemo, useState, useRef } from "react";
+import { useContext, useEffect, useMemo, useState, useRef } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { Link, useSearchParams } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { FaFilter, FaChevronDown } from "react-icons/fa";
+import { getPerPiecePrice, formatNumber, getPackPrice } from "../utils/price";
+import SetInfo from "../components/SetInfo";
 
 const Collection = () => {
   const { products, search, showSearch } = useContext(ShopContext);
@@ -27,8 +29,7 @@ const Collection = () => {
   const getImage = (p) =>
     p?.variants?.[0]?.images?.[0] || assets.placeholder_image;
 
-  /* PRICE */
-  const getPrice = (p) => p?.variants?.[0]?.price || 0;
+
 
   /* FILTER OPTIONS */
   const categories = useMemo(
@@ -85,8 +86,8 @@ const Collection = () => {
     }
 
     // SORT
-    if (sortType === "low-high") temp.sort((a, b) => getPrice(a) - getPrice(b));
-    if (sortType === "high-low") temp.sort((a, b) => getPrice(b) - getPrice(a));
+    if (sortType === "low-high") temp.sort((a, b) => getPerPiecePrice(a) - getPerPiecePrice(b));
+    if (sortType === "high-low") temp.sort((a, b) => getPerPiecePrice(b) - getPerPiecePrice(a));
 
     setFilteredProducts(temp);
   }, [products, category, subCategory, search, showSearch, sortType]);
@@ -192,7 +193,10 @@ const Collection = () => {
         {/* PRODUCTS */}
         <div className="flex-1">
           <div className="hidden sm:flex justify-between mb-8">
-            <Title text1="ALL" text2="COLLECTIONS" />
+            <div className="flex items-center gap-2">
+              <Title text1="ALL" text2="COLLECTIONS" />
+              <SetInfo compact />
+            </div>
 
             {/* DESKTOP SORT */}
             <div className="relative" ref={sortRef}>
@@ -248,7 +252,8 @@ const Collection = () => {
                     {item.name}
                   </h3>
                   <p className="text-base font-serif text-pink-500">
-                    ₹{getPrice(item).toLocaleString()}
+                    <span className="font-semibold">₹{formatNumber(getPackPrice(item))}</span>
+                    <span className="text-sm text-gray-500 ml-2">(Set) ₹{formatNumber(getPerPiecePrice(item))}/pc</span>
                   </p>
                 </div>
               </Link>

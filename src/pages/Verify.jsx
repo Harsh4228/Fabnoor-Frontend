@@ -1,5 +1,5 @@
 // ============= Verify.jsx =============
-import React, { useEffect, useContext } from 'react'
+import { useEffect, useContext, useCallback } from 'react' 
 import { useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 import { ShopContext } from '../context/ShopContext'
@@ -12,19 +12,19 @@ import { toast } from 'react-toastify'
   const success = searchParams.get('success')
   const orderId = searchParams.get('orderId')
 
-  const verifyPayment = async () => {
+  const verifyPayment = useCallback(async () => {
     try {
       if (!token) return null
 
       const response = await axios.post(
         backendUrl + '/api/order/verifyStripe',
         { success, orderId },
-        { headers: { token } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
         setCartItems({})
-        navigate('/orders')
+        navigate('/order')
       } else {
         navigate('/cart')
       }
@@ -32,11 +32,11 @@ import { toast } from 'react-toastify'
       console.log(error)
       toast.error('Something went wrong');
     }
-  }
+  }, [backendUrl, token, orderId, success, navigate, setCartItems])
 
   useEffect(() => {
     verifyPayment()
-  }, [token])
+  }, [verifyPayment])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 flex items-center justify-center">

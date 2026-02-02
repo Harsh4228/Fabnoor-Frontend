@@ -11,9 +11,11 @@ const root = createRoot(rootElement);
 
 
 root.render(
-  <BrowserRouter>
-    <ShopContextProvider >
-      <App />
-    </ShopContextProvider>
-  </BrowserRouter>
+  <StrictMode>
+    <BrowserRouter>
+      <ShopContextProvider >
+        <App />
+      </ShopContextProvider>
+    </BrowserRouter>
+  </StrictMode>
 );

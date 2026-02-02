@@ -1,5 +1,3 @@
-import React from "react";
-
 const AboutSection = () => {
   return (
     <section className="py-16 md:py-24 bg-gradient-to-b from-white via-pink-50/20 to-white" id="about">

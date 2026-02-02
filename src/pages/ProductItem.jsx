@@ -1,4 +1,5 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
+import PropTypes from 'prop-types';
 import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
@@ -76,6 +77,14 @@ const ProductItem = ({ id, name, price, image, variants }) => {
       </div>
     </Link>
   );
+};
+
+ProductItem.propTypes = {
+  id: PropTypes.string,
+  name: PropTypes.string,
+  price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  image: PropTypes.string,
+  variants: PropTypes.array,
 };
 
 export default ProductItem;

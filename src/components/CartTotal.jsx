@@ -1,5 +1,6 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { ShopContext } from "../context/ShopContext";
+import { formatNumber } from "../utils/price";
 
 const CartTotal = () => {
   const { currency, delivery_fee, getCartAmount } = useContext(ShopContext);
@@ -23,7 +24,7 @@ const CartTotal = () => {
         <div className="flex justify-between items-center text-sm md:text-base text-gray-700">
           <span className="font-medium">Subtotal</span>
           <span className="font-semibold">
-            {currency} {subtotal}.00
+            {currency} {formatNumber(subtotal)}
           </span>
         </div>
 
@@ -32,7 +33,7 @@ const CartTotal = () => {
         <div className="flex justify-between items-center text-sm md:text-base text-gray-700">
           <span className="font-medium">Shipping Fee</span>
           <span className="font-semibold">
-            {currency} {delivery_fee}.00
+            {currency} {formatNumber(delivery_fee)}
           </span>
         </div>
 
@@ -43,7 +44,7 @@ const CartTotal = () => {
             Total
           </span>
           <span className="text-lg md:text-xl font-bold text-rose-500">
-            {currency} {total}.00
+            {currency} {formatNumber(total)}
           </span>
         </div>
       </div>

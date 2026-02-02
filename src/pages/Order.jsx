@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import axios from "axios";
@@ -10,7 +10,7 @@ const Order = () => {
   const [orderData, setOrderData] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const loadOrderData = async () => {
+  const loadOrderData = useCallback(async () => {
     try {
       if (!token) return;
 
@@ -30,11 +30,11 @@ const Order = () => {
     } catch (error) {
       console.error("Load orders error:", error);
     }
-  };
+  }, [token, backendUrl]);
 
   useEffect(() => {
     loadOrderData();
-  }, [token]);
+  }, [loadOrderData]);
 
   return (
     <div className="border-t pt-16">

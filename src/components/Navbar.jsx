@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { assets } from "../assets/assets";
 import { Link, NavLink } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
@@ -10,7 +10,6 @@ function Navbar() {
     setShowSearch,
     getCartItems,
     navigate,
-    token,
     setToken,
     setCartItems,
   } = useContext(ShopContext);
@@ -27,7 +26,7 @@ function Navbar() {
       {/* ================= TOP OFFER ================= */}
       <div className="bg-gradient-to-r from-rose-400 via-pink-400 to-rose-400 text-white text-sm py-3 overflow-hidden">
         <div className="whitespace-nowrap animate-marquee px-4 font-medium tracking-wide">
-          ✨ GET 10% OFF ON PREPAID · APPLY CODE "PRE10" · BUY 2 GET 15% OFF · BUY 3 GET 20% OFF · BUY 4 GET 25% OFF ✨
+          ✨ GET 10% OFF ON PREPAID · APPLY CODE &quot;PRE10&quot; · BUY 2 GET 15% OFF · BUY 3 GET 20% OFF · BUY 4 GET 25% OFF ✨
         </div>
       </div>
 
@@ -92,7 +91,6 @@ function Navbar() {
         <ul className="flex justify-center gap-8 py-4 text-sm font-medium text-gray-700">
 
           {["Home", "Collection", "About", "Contact", "order", "profile"].map((item) => (
-            <>
               <NavLink
                 key={item}
                 to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
@@ -103,12 +101,9 @@ function Navbar() {
                 {item.toUpperCase()}
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
               </NavLink>
-            </>
           ))}
           <button
-            className={({ isActive }) =>
-              `relative group ${isActive ? "text-rose-500" : ""}`
-            }
+            className={`relative group`}
             onClick={logout}
           >
             LOGOUT
@@ -160,7 +155,7 @@ function Navbar() {
       )}
 
       {/* MARQUEE */}
-      <style jsx>{`
+      <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }

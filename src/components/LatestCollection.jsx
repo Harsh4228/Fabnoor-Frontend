@@ -1,14 +1,12 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
-import Title from "./Title";
 import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
-import { FaRegHeart, FaHeart } from "react-icons/fa";
+import { getPerPiecePrice, formatNumber, getPackPrice } from "../utils/price";
 
 const LatestCollection = () => {
   const { products } = useContext(ShopContext);
   const [latestProducts, setLatestProducts] = useState([]);
-  const [wishlist, setWishlist] = useState({});
 
   useEffect(() => {
     if (products?.length) {
@@ -20,17 +18,6 @@ const LatestCollection = () => {
   const getImage = (p) =>
     p?.variants?.[0]?.images?.[0] || assets.placeholder_image;
 
-  const getPrice = (p) => {
-  const packPrice = Number(p?.variants?.[0]?.price || 0);
-  const totalPieces = Number(p?.variants?.[0]?.sizes?.length || 1);
-  return packPrice / totalPieces;
-};
-
-
-  const toggleWishlist = (id, e) => {
-    e.preventDefault();
-    setWishlist(prev => ({ ...prev, [id]: !prev[id] }));
-  };
 
   return (
     <section className="my-12 md:my-16 py-8 md:py-12 bg-white">
@@ -104,7 +91,8 @@ const LatestCollection = () => {
                   {item.name}
                 </h3>
                 <p className="text-sm md:text-base font-serif text-rose-500">
-                  ₹{getPrice(item).toLocaleString()}
+                  <span className="font-semibold">₹{formatNumber(getPackPrice(item))}</span>
+                  <span className="text-xs md:text-sm text-gray-200 ml-2">(Set) ₹{formatNumber(getPerPiecePrice(item))}/pc</span>
                 </p>
               </div>
             </Link>

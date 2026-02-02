@@ -1,10 +1,12 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 import RelatedProducts from "../components/Relatedproducts";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import toast from "react-hot-toast";
+import { formatNumber } from "../utils/price";
+import SetInfo from "../components/SetInfo";
 
 const Product = () => {
   const { productId } = useParams();
@@ -155,8 +157,11 @@ const perPiecePrice = packPrice / piecesCount;
 
           {/* ================= INFO ================= */}
           <div className="flex-1 bg-white rounded-2xl shadow-lg p-6 md:p-8">
-            <div className="flex justify-between mb-2">
-              <h1 className="text-3xl font-serif">{productData.name}</h1>
+            <div className="flex justify-between mb-2 items-center">
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-serif">{productData.name}</h1>
+                <SetInfo />
+              </div>
 
               <button
                 onClick={handleWishlist}
@@ -174,17 +179,17 @@ const perPiecePrice = packPrice / piecesCount;
               <b>Type:</b> {selectedVariant.type}
             </p>
 
-           <p className="text-4xl font-bold text-pink-500 mb-1">
+            <p className="text-4xl font-bold text-pink-500 mb-1">
   {currency}
-  {Math.round(perPiecePrice)}
-  <span className="text-sm font-medium text-gray-500 ml-2">(Per Piece)</span>
+  {formatNumber(perPiecePrice)}
+  <span className="text-sm font-medium text-gray-500 ml-2">(Per piece)</span>
 </p>
 
 <p className="text-sm text-gray-600 mb-4">
-  Pack Price:{" "}
+  <b>Set price:</b>{" "}
   <span className="font-semibold text-gray-800">
     {currency}
-    {packPrice}
+    {formatNumber(packPrice)}
   </span>{" "}
   | Total Pieces:{" "}
   <span className="font-semibold text-gray-800">{piecesCount}</span>

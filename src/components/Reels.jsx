@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { ShopContext } from "../context/ShopContext";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
@@ -12,7 +12,7 @@ const Reels = () => {
   const [loading, setLoading] = useState(true);
 
   /* ================= GET REELS ================= */
-  const fetchReels = async () => {
+  const fetchReels = useCallback(async () => {
     try {
       const res = await axios.get(`${backendUrl}/api/reels`);
       setReels(res.data.reels || res.data);
@@ -22,11 +22,11 @@ const Reels = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [backendUrl]);
 
   useEffect(() => {
     fetchReels();
-  }, []);
+  }, [fetchReels]);
 
   /* ================= LIKE / UNLIKE ================= */
   const toggleLike = async (reelId) => {

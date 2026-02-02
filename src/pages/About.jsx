@@ -1,4 +1,4 @@
-import React from 'react'
+
 import Title from '../components/Title'
 import { assets } from '../assets/assets'
 import Newsletter from '../components/Newsletter'
@@ -24,7 +24,7 @@ const About = () => {
 
           <div className='flex flex-col justify-center gap-6 md:w-1/2'>
             <p className='text-gray-700 text-lg leading-relaxed'>
-              Fabnoor was built with a simple vision — to bring style, quality, and convenience together in one beautiful online destination. We believe shopping should feel inspiring, effortless, and trustworthy, whether you're discovering something new or finding a favorite again.
+              Fabnoor was built with a simple vision — to bring style, quality, and convenience together in one beautiful online destination. We believe shopping should feel inspiring, effortless, and trustworthy, whether you&apos;re discovering something new or finding a favorite again.
             </p>
 
             <p className='text-gray-700 text-lg leading-relaxed'>

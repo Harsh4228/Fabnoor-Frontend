@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
@@ -8,7 +8,7 @@ import axios from "axios";
 
 import Select from "react-select";
 import { Country, State } from "country-state-city";
-import { replace } from "react-router-dom";
+
 
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
@@ -23,6 +23,13 @@ const PlaceOrder = () => {
     delivery_fee,
     products,
   } = useContext(ShopContext);
+
+  // Debug helper: safely mask token for logs
+  const maskToken = (t) => {
+    if (!t) return '<none>';
+    if (t.length <= 12) return t.replace(/.(?=.{4})/g, '*');
+    return `${t.slice(0,6)}...${t.slice(-4)}`;
+  }; 
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -193,7 +200,13 @@ const PlaceOrder = () => {
 
     if (!validateForm()) return;
 
-    setLoading(true);
+    if (!token) {
+    alert('Please login to place an order');
+    navigate('/login');
+    return;
+  }
+
+  setLoading(true);
 
     try {
       const items = buildOrderItems();
@@ -219,19 +232,22 @@ const PlaceOrder = () => {
 
       // ================= COD =================
       if (method === "cod") {
+        console.log('[placeOrder] COD submit', { tokenPresent: !!token, token: maskToken(token), items: items.length, amount: orderData.amount });
         const res = await axios.post(`${backendUrl}/api/order/place`, orderData, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (res.data.success) {
+          console.log('[placeOrder] COD success', res.data);
           setCartItems({});
           localStorage.removeItem("cartItems");
-          navigate("/orders",{replace:true});
+          navigate("/order",{replace:true});
         }
       }
 
       // ================= RAZORPAY =================
       if (method === "razorpay") {
+        console.log('[placeOrder] Razorpay create order', { tokenPresent: !!token, token: maskToken(token), amount: orderData.amount });
         const res = await axios.post(
           `${backendUrl}/api/order/razorpay`,
           orderData,
@@ -241,6 +257,7 @@ const PlaceOrder = () => {
         );
 
         if (res.data.success && res.data.razorpayOrder) {
+          console.log('[placeOrder] Razorpay order created', res.data.razorpayOrder);
           const rpOrder = res.data.razorpayOrder;
 
           const options = {
@@ -250,6 +267,7 @@ const PlaceOrder = () => {
             order_id: rpOrder.id,
 
             handler: async (response) => {
+              console.log('[placeOrder] Razorpay handler response', response);
               const verify = await axios.post(
                 `${backendUrl}/api/order/verifyRazorpay`,
                 {
@@ -262,9 +280,10 @@ const PlaceOrder = () => {
               );
 
               if (verify.data.success) {
+                console.log('[placeOrder] Razorpay verify success', verify.data);
                 setCartItems({});
                 localStorage.removeItem("cartItems");
-                navigate("/orders",{replace:true});
+                navigate("/order",{replace:true});
               }
             },
           };
@@ -273,8 +292,15 @@ const PlaceOrder = () => {
         }
       }
     } catch (error) {
-      console.error("Order error:", error);
-      alert(error.response?.data?.message || "Order failed");
+      console.error("Order error:", error, error?.response?.data);
+      const msg = error?.response?.data?.message || error.message || "Order failed";
+      // If unauthorized, direct user to login
+      if (error?.response?.status === 401) {
+        alert('Your session has expired. Please login again.');
+        navigate('/login');
+      } else {
+        alert(msg);
+      }
     } finally {
       setLoading(false);
     }

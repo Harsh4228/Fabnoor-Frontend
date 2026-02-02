@@ -1,7 +1,10 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
+import { getPerPiecePrice, formatNumber, getPackPrice } from "../utils/price";
+
+import PropTypes from 'prop-types';
 
 const RelatedProducts = ({ category, subCategory, currentProductId }) => {
   const { products, setSearch, setShowSearch } = useContext(ShopContext);
@@ -24,8 +27,7 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
   const getImage = (product) =>
     product?.variants?.[0]?.images?.[0] || assets.placeholder_image;
 
-  /* PRICE FROM VARIANT */
-  const getPrice = (product) => product?.variants?.[0]?.price || 0;
+
 
   const handleClick = () => {
     // ✅ clear any filter/search state
@@ -84,7 +86,8 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
                     {item.name}
                   </p>
                   <p className="text-lg font-bold text-pink-500">
-                    ₹{getPrice(item)}
+                    <span className="font-semibold">₹{formatNumber(getPackPrice(item))}</span>
+                    <span className="text-sm text-gray-500 ml-2">(Set) ₹{formatNumber(getPerPiecePrice(item))}/pc</span>
                   </p>
                 </div>
               </Link>
@@ -98,6 +101,12 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
       </div>
     </div>
   );
+};
+
+RelatedProducts.propTypes = {
+  category: PropTypes.string,
+  subCategory: PropTypes.string,
+  currentProductId: PropTypes.string,
 };
 
 export default RelatedProducts;

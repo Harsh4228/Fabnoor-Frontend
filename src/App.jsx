@@ -1,5 +1,5 @@
 // App.jsx
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -52,6 +52,8 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/place-order" element={<PlaceOrder />} />
           <Route path="/order" element={<Order />} />
+          {/* Backwards-compat redirect for older routes */}
+          <Route path="/orders" element={<Navigate to="/order" replace />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/wishlist" element={<Wishlist />} />

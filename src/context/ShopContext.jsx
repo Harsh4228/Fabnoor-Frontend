@@ -1,4 +1,6 @@
-import { createContext, useEffect, useState } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useEffect, useState, useCallback, useMemo } from "react";
+import PropTypes from 'prop-types';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -96,9 +98,9 @@ export const ShopContextProvider = ({ children }) => {
   const navigate = useNavigate();
 
   /* ================= AUTH HEADER ================= */
-  const authHeader = token
-    ? { headers: { Authorization: `Bearer ${token}` } }
-    : {};
+  const authHeader = useMemo(() => {
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+  }, [token]);
 
   /* ================= SAVE CART LOCAL ================= */
   useEffect(() => {
@@ -232,17 +234,17 @@ export const ShopContextProvider = ({ children }) => {
   };
 
   /* ================= LOAD PRODUCTS ================= */
-  const getProductsData = async () => {
+  const getProductsData = useCallback(async () => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/product/list`);
       if (data.success) setProducts(data.products);
     } catch (err) {
       console.log("Products load error:", err);
     }
-  };
+  }, [backendUrl]);
 
   /* ================= GET USER CART ================= */
-  const getUserCart = async () => {
+  const getUserCart = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -258,10 +260,10 @@ export const ShopContextProvider = ({ children }) => {
     } catch (err) {
       console.log("User cart load error:", err);
     }
-  };
+  }, [backendUrl, authHeader, token]);
 
   /* ================= WISHLIST (DB) ================= */
-  const getWishlist = async () => {
+  const getWishlist = useCallback(async () => {
     if (!token) {
       setWishlist([]);
       return;
@@ -274,7 +276,7 @@ export const ShopContextProvider = ({ children }) => {
       console.error("Wishlist fetch failed", error);
       setWishlist([]);
     }
-  };
+  }, [backendUrl, authHeader, token]);
 
   /* ================= GUEST WISHLIST HELPERS ================= */
   const addGuestWishlist = (productId, color = "") => {
@@ -357,7 +359,7 @@ export const ShopContextProvider = ({ children }) => {
   };
 
   /* ================= MERGE GUEST WISHLIST TO DB AFTER LOGIN ================= */
-  const mergeGuestWishlistToDB = async () => {
+  const mergeGuestWishlistToDB = useCallback(async () => {
     if (!token) return;
     if (!guestWishlist.length) return;
 
@@ -380,28 +382,28 @@ export const ShopContextProvider = ({ children }) => {
     } catch (err) {
       console.log("Wishlist merge error:", err);
     }
-  };
+  }, [token, guestWishlist, backendUrl, authHeader, getWishlist]);
 
   /* ================= LOAD ON START ================= */
   useEffect(() => {
     getProductsData();
-  }, []);
+  }, [getProductsData]);
 
   // ✅ Cart must load directly when token exists
   useEffect(() => {
     if (token) getUserCart();
     else setCartItems({});
-  }, [token]);
+  }, [token, getUserCart]);
 
   // wishlist load
   useEffect(() => {
     getWishlist();
-  }, [token]);
+  }, [getWishlist]);
 
   // ✅ merge guest wishlist after login
   useEffect(() => {
     if (token) mergeGuestWishlistToDB();
-  }, [token]);
+  }, [token, mergeGuestWishlistToDB]);
 
   return (
     <ShopContext.Provider
@@ -441,4 +443,8 @@ export const ShopContextProvider = ({ children }) => {
       {children}
     </ShopContext.Provider>
   );
+};
+
+ShopContextProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };

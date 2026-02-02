@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
 import Title from "../components/Title";
@@ -17,7 +17,7 @@ const Profile = () => {
   const [wishlistCount, setWishlistCount] = useState(0);
 
   /* ================= LOAD PROFILE ================= */
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const res = await axios.get(`${backendUrl}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -33,10 +33,10 @@ const Profile = () => {
     } catch (err) {
       toast.error(err.response?.data?.message || "Profile load failed");
     }
-  };
+  }, [backendUrl, token]);
 
   /* ================= LOAD ORDERS ================= */
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       const response = await axios.post(
         `${backendUrl}/api/order/userorders`,
@@ -53,10 +53,10 @@ const Profile = () => {
       console.error("Orders load error:", err);
       setOrdersCount(0);
     }
-  };
+  }, [backendUrl, token]);
 
   /* ================= LOAD WISHLIST ================= */
-  const loadWishlist = async () => {
+  const loadWishlist = useCallback(async () => {
     try {
       const res = await axios.get(`${backendUrl}/api/wishlist`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -69,7 +69,7 @@ const Profile = () => {
       console.error("Wishlist load error:", err);
       setWishlistCount(0);
     }
-  };
+  }, [backendUrl, token]);
 
   /* ================= UPDATE PROFILE ================= */
   const updateProfile = async () => {
@@ -108,7 +108,7 @@ const Profile = () => {
     loadProfile();
     loadOrders();
     loadWishlist();
-  }, [token]);
+  }, [token, navigate, loadProfile, loadOrders, loadWishlist]);
 
   if (!user) {
     return (

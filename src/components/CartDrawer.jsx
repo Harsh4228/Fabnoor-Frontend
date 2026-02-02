@@ -1,7 +1,6 @@
-import React, { useContext, useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
-import { Link } from "react-router-dom";
 import { FaTimes } from "react-icons/fa";
 
 const CartDrawer = () => {
