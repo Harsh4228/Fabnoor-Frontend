@@ -22,27 +22,39 @@ const CartDrawer = () => {
 
     for (const pid in cartItems) {
       const product = products.find((p) => p._id === pid);
-      if (!product) continue;
-
       const qty = Number(cartItems[pid]?.quantity || 0);
       if (qty <= 0) continue;
 
       const color = cartItems[pid]?.color || "";
       const type = cartItems[pid]?.type || "";
 
-      const variant =
-        product?.variants?.find((v) => v.color === color && v.type === type) ||
-        product?.variants?.[0];
+      if (product) {
+        const variant =
+          product?.variants?.find((v) => v.color === color && v.type === type) ||
+          product?.variants?.[0];
 
-      arr.push({
-        productId: pid,
-        name: product.name,
-        qty,
-        price: Number(variant?.price || 0),
-        image: variant?.images?.[0] || assets.placeholder_image,
-        color: variant?.color || color,
-        type: variant?.type || type,
-      });
+        arr.push({
+          productId: pid,
+          name: product.name,
+          qty,
+          price: Number(variant?.price || 0),
+          image: variant?.images?.[0] || assets.placeholder_image,
+          color: variant?.color || color,
+          type: variant?.type || type,
+        });
+      } else {
+        // Products data hasn't loaded yet (or product not found). Show a placeholder
+        // entry so the cart doesn't appear empty while we fetch product info.
+        arr.push({
+          productId: pid,
+          name: "Loading product...",
+          qty,
+          price: 0,
+          image: assets.placeholder_image,
+          color,
+          type,
+        });
+      }
     }
 
     return arr;

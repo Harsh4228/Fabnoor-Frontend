@@ -16,7 +16,64 @@ export const ShopContextProvider = ({ children }) => {
   const [showSearch, setShowSearch] = useState(false);
 
   // ✅ SIDE CART DRAWER STATE
-  const [showCartDrawer, setShowCartDrawer] = useState(false);
+  const [showCartDrawer, setShowCartDrawerState] = useState(false);
+  // prevent accidental auto-close: when drawer is opened programmatically
+  // ignore programmatic closes for a short grace period, but allow an
+  // explicit auto-close timer to close it as a non-programmatic action.
+  const drawerLockUntilRef = useRef(0);
+  const drawerAutoCloseRef = useRef(null);
+  const DRAWER_LOCK_MS = 8000;
+  const AUTO_CLOSE_MS = 3500;
+
+  const clearAutoClose = () => {
+    if (drawerAutoCloseRef.current) {
+      clearTimeout(drawerAutoCloseRef.current);
+      drawerAutoCloseRef.current = null;
+    }
+  };
+
+  const setShowCartDrawer = (val, { programmatic = true } = {}) => {
+    const now = Date.now();
+
+    // if attempting to close programmatically within lock window, ignore
+    if (val === false && programmatic && now < drawerLockUntilRef.current) {
+      try {
+        // debug log when a programmatic close is ignored
+        // eslint-disable-next-line no-console
+        console.log("Ignored programmatic close of cart drawer due to lock", {
+          now,
+          lockUntil: drawerLockUntilRef.current,
+          stack: new Error().stack,
+        });
+      } catch (e) {}
+      return;
+    }
+
+    // if opening, set lock to prevent immediate programmatic closes
+    if (val === true && programmatic) {
+      drawerLockUntilRef.current = Date.now() + DRAWER_LOCK_MS;
+
+      // clear previous auto-close then schedule a new auto-close that will
+      // call the setter with programmatic: false so it bypasses the lock.
+      clearAutoClose();
+      drawerAutoCloseRef.current = setTimeout(() => {
+        setShowCartDrawer(false, { programmatic: false });
+      }, AUTO_CLOSE_MS);
+    }
+
+    // if closing (by any means), clear any pending auto-close timer
+    if (val === false) {
+      clearAutoClose();
+    }
+
+    try {
+      // debug log for opens/closes
+      // eslint-disable-next-line no-console
+      console.log("setShowCartDrawer ->", val, { programmatic, now });
+    } catch (e) {}
+
+    setShowCartDrawerState(val);
+  };
 
   /* ================= SAFE CART NORMALIZER ================= */
   const normalizeCart = (savedCart) => {
@@ -255,7 +312,14 @@ export const ShopContextProvider = ({ children }) => {
       );
 
       if (data.success) {
-        setCartItems(normalizeCart(data.cartData || {}));
+        const serverCart = normalizeCart(data.cartData || {});
+        const serverHasItems = Object.keys(serverCart).length > 0;
+        const localHasItems = Object.keys(cartItems || {}).length > 0;
+
+        // Avoid overwriting a non-empty local guest cart with an empty server cart
+        if (serverHasItems || !localHasItems) {
+          setCartItems(serverCart);
+        }
       }
     } catch (err) {
       console.log("User cart load error:", err);
@@ -276,9 +340,19 @@ export const ShopContextProvider = ({ children }) => {
       );
 
       if (data.success) {
-        // replace local cart with normalized server cart
-        setCartItems(normalizeCart(data.cartData || {}));
-        localStorage.removeItem("cartItems");
+        const serverCart = normalizeCart(data.cartData || {});
+        const serverHasItems = Object.keys(serverCart).length > 0;
+        if (serverHasItems) {
+          // replace local cart with server cart only if server has items
+          setCartItems(serverCart);
+          localStorage.removeItem("cartItems");
+          try {
+            localStorage.setItem("cartMerged", "1");
+          } catch (e) {}
+        } else {
+          // server returned empty cart after merge — keep local guest cart
+          console.warn("Merge returned empty server cart; keeping local guest cart.");
+        }
       }
     } catch (err) {
       console.error("Cart merge failed:", err);
