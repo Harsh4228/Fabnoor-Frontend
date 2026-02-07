@@ -42,15 +42,15 @@ const CategoryShowcase = () => {
             <div
               key={cat.name}
               onClick={() => navigate(`/collection?category=${cat.name}`)}
-              className="min-w-[90px] md:min-w-[100px] text-center cursor-pointer group"
+              className="min-w-[64px] md:min-w-[80px] text-center cursor-pointer group"
             >
               {/* Image */}
               <div className="relative mx-auto mb-2">
                 {/* Glow */}
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-rose-200 to-pink-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 scale-105 blur-md" />
 
-                {/* Small Rectangle Card */}
-                <div className="relative w-24 h-32 md:w-28 md:h-36 mx-auto rounded-lg overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 group-hover:border-rose-300 transition-all duration-300 shadow-sm group-hover:shadow-md">
+                {/* Small Square Card */}
+                <div className="relative w-16 h-16 md:w-20 md:h-20 mx-auto rounded-md overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 group-hover:border-rose-300 transition-all duration-300 shadow-sm group-hover:shadow-md">
                   <img
                     src={cat.image}
                     alt={cat.name}
@@ -62,7 +62,7 @@ const CategoryShowcase = () => {
                 </div>
 
                 {/* Small Arrow Icon */}
-                <div className="absolute bottom-1 right-1 w-6 h-6 bg-rose-500 rounded-md shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                <div className="absolute bottom-1 right-1 w-5 h-5 bg-rose-500 rounded-md shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <svg
                     className="w-3 h-3 text-white"
                     fill="none"

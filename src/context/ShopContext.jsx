@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useEffect, useState, useCallback, useMemo } from "react";
+import { createContext, useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PropTypes from 'prop-types';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -262,6 +262,29 @@ export const ShopContextProvider = ({ children }) => {
     }
   }, [backendUrl, authHeader, token]);
 
+  /* ================= MERGE GUEST CART TO DB (ON LOGIN) - BULK ================= */
+  const mergeGuestCartToDB = useCallback(async () => {
+    const entries = Object.entries(cartItems || {});
+    if (!token || !entries.length) return;
+
+    try {
+      const payload = { cartData: cartItems };
+      const { data } = await axios.post(
+        `${backendUrl}/api/cart/merge`,
+        payload,
+        authHeader
+      );
+
+      if (data.success) {
+        // replace local cart with normalized server cart
+        setCartItems(normalizeCart(data.cartData || {}));
+        localStorage.removeItem("cartItems");
+      }
+    } catch (err) {
+      console.error("Cart merge failed:", err);
+    }
+  }, [cartItems, token, backendUrl, authHeader]);
+
   /* ================= WISHLIST (DB) ================= */
   const getWishlist = useCallback(async () => {
     if (!token) {
@@ -389,11 +412,35 @@ export const ShopContextProvider = ({ children }) => {
     getProductsData();
   }, [getProductsData]);
 
-  // ✅ Cart must load directly when token exists
+  // ✅ If token exists, load cart from backend. Otherwise keep local cart (localStorage).
   useEffect(() => {
     if (token) getUserCart();
-    else setCartItems({});
   }, [token, getUserCart]);
+
+  // Detect token transitions (login / logout)
+  const prevTokenRef = useRef(token);
+
+  useEffect(() => {
+    const prev = prevTokenRef.current;
+    // login: prev falsy -> now truthy
+    if (!prev && token) {
+      // merge guest cart into DB
+      mergeGuestCartToDB();
+      // also merge guest wishlist
+      mergeGuestWishlistToDB();
+    }
+
+    // logout: prev truthy -> now falsy
+    if (prev && !token) {
+      // clear local cart on explicit logout
+      setCartItems({});
+      localStorage.removeItem("cartItems");
+      // clear wishlist from memory (keep guestWishlist local)
+      setWishlist([]);
+    }
+
+    prevTokenRef.current = token;
+  }, [token, mergeGuestCartToDB, mergeGuestWishlistToDB]);
 
   // wishlist load
   useEffect(() => {

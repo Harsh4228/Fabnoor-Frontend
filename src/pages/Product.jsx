@@ -23,6 +23,7 @@ const Product = () => {
   const [productData, setProductData] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedImage, setSelectedImage] = useState("");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   /* ===== Preview & Zoom ===== */
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -40,9 +41,64 @@ const Product = () => {
     if (product && product.variants?.length) {
       setProductData(product);
       setSelectedVariant(product.variants[0]);
+      setSelectedImageIndex(0);
       setSelectedImage(product.variants[0].images?.[0] || "");
     }
   }, [productId, products]);
+
+  // Keep selectedImage in sync with selectedVariant + index
+  useEffect(() => {
+    if (!selectedVariant) return;
+    const imgs = selectedVariant.images || [];
+    const idx = Math.min(Math.max(0, selectedImageIndex), Math.max(0, imgs.length - 1));
+    setSelectedImage(imgs[idx] || "");
+  }, [selectedVariant, selectedImageIndex]);
+
+  // Helpers to navigate images
+  const lastWheelRef = useRef(0);
+  const touchStartX = useRef(null);
+
+  const prevImage = () => {
+    const imgs = selectedVariant?.images || [];
+    if (!imgs.length) return;
+    setSelectedImageIndex((s) => {
+      const next = (s - 1 + imgs.length) % imgs.length;
+      return next;
+    });
+  };
+
+  const nextImage = () => {
+    const imgs = selectedVariant?.images || [];
+    if (!imgs.length) return;
+    setSelectedImageIndex((s) => (s + 1) % imgs.length);
+  };
+
+  const handleWheel = (e) => {
+    // throttle rapid wheel events
+    const now = Date.now();
+    if (now - lastWheelRef.current < 180) return;
+    lastWheelRef.current = now;
+
+    // use horizontal or vertical delta
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (delta > 0) {
+      // scrolled down / right -> next
+      nextImage();
+    } else if (delta < 0) {
+      // scrolled up / left -> prev
+      prevImage();
+    }
+  };
+
+  const handleKey = (e) => {
+    if (e.key === "ArrowLeft") prevImage();
+    if (e.key === "ArrowRight") nextImage();
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [selectedVariant]);
 
   if (!productData || !selectedVariant) {
     return <div className="min-h-screen" />;
@@ -127,9 +183,9 @@ const perPiecePrice = packPrice / piecesCount;
               {(selectedVariant.images || []).map((img, i) => (
                 <button
                   key={i}
-                  onClick={() => setSelectedImage(img)}
+                  onClick={() => setSelectedImageIndex(i)}
                   className={`w-20 sm:w-full aspect-square rounded-lg border-2 ${
-                    selectedImage === img
+                    selectedImageIndex === i
                       ? "border-pink-500 ring-2 ring-pink-200"
                       : "border-gray-200"
                   }`}
@@ -139,7 +195,21 @@ const perPiecePrice = packPrice / piecesCount;
               ))}
             </div>
 
-            <div className="w-full sm:w-[80%] bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div
+              onWheel={handleWheel}
+              onTouchStart={(e) => (touchStartX.current = e.touches?.[0]?.clientX)}
+              onTouchEnd={(e) => {
+                const endX = e.changedTouches?.[0]?.clientX;
+                if (touchStartX.current == null || endX == null) return;
+                const diff = touchStartX.current - endX;
+                if (Math.abs(diff) > 40) {
+                  if (diff > 0) nextImage();
+                  else prevImage();
+                }
+                touchStartX.current = null;
+              }}
+              className="w-full sm:w-[80%] bg-white rounded-2xl shadow-lg overflow-hidden"
+            >
               <img
                 src={selectedImage || assets.placeholder_image}
                 alt={productData.name}
@@ -148,7 +218,6 @@ const perPiecePrice = packPrice / piecesCount;
                   setZoom(1);
                   setPosition({ x: 0, y: 0 });
                   setShowZoomHint(true);
-                  setTimeout(() => setShowZoomHint(false), 2000);
                 }}
                 className="w-full h-full object-cover cursor-zoom-in"
               />
@@ -276,14 +345,26 @@ const perPiecePrice = packPrice / piecesCount;
 
       {/* ================= IMAGE PREVIEW ================= */}
       {isPreviewOpen && (
-        <div
-          onClick={closePreview}
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center"
-        >
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-5xl h-[85vh] overflow-hidden flex items-center justify-center"
+            onClick={closePreview}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center"
           >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onWheel={handleWheel}
+              onTouchStart={(e) => (touchStartX.current = e.touches?.[0]?.clientX)}
+              onTouchEnd={(e) => {
+                const endX = e.changedTouches?.[0]?.clientX;
+                if (touchStartX.current == null || endX == null) return;
+                const diff = touchStartX.current - endX;
+                if (Math.abs(diff) > 40) {
+                  if (diff > 0) nextImage();
+                  else prevImage();
+                }
+                touchStartX.current = null;
+              }}
+              className="relative w-full max-w-5xl h-[85vh] overflow-hidden flex items-center justify-center"
+            >
             <button
               onClick={closePreview}
               className="absolute top-4 right-4 z-50 w-10 h-10 bg-white rounded-full flex items-center justify-center text-2xl font-bold text-gray-700 hover:bg-red-50 hover:text-red-500"
