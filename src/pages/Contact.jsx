@@ -68,9 +68,9 @@ const Contact = () => {
                 Contact Information
               </p>
               <p className="text-gray-600">
-                Tel: (+91) 9979624404
+                Tel: (+91) 9274703338 / +91 9274713338
                 <br />
-                E-mail: harshbutani1@gmail.com
+                E-mail: support@fabnoor.com
               </p>
             </div>
 

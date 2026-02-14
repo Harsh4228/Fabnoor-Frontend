@@ -2,7 +2,7 @@ import { assets } from '../assets/assets';
 import { useEffect, useState, useRef } from 'react';
 
 const Hero = ({ interval = 4000 }) => {
-  const slides = [assets.Hero, assets.hero_img, assets.about_img];
+  const slides = [assets.Hero, assets.Hero, assets.Hero];
   const [index, setIndex] = useState(0);
   const timerRef = useRef(null);
   const [paused, setPaused] = useState(false);
