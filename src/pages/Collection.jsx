@@ -252,8 +252,8 @@ const Collection = () => {
                     {item.name}
                   </h3>
                   <p className="text-base font-serif text-pink-500">
-                    <span className="font-semibold">₹{formatNumber(getPackPrice(item))}</span>
-                    <span className="text-sm text-gray-500 ml-2">(Set) ₹{formatNumber(getPerPiecePrice(item))}/pc</span>
+                    <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item))}/pc</span>
+                    <span className="text-sm text-gray-500 ml-2">(Full Set) ₹{formatNumber(getPackPrice(item))}</span>
                   </p>
                 </div>
               </Link>
