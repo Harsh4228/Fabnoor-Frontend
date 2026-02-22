@@ -91,8 +91,8 @@ const LatestCollection = () => {
                   {item.name}
                 </h3>
                 <p className="text-sm md:text-base font-serif text-rose-500">
-                  <span className="font-semibold">₹{formatNumber(getPackPrice(item))}</span>
-                  <span className="text-xs md:text-sm text-gray-200 ml-2">(Set) ₹{formatNumber(getPerPiecePrice(item))}/pc</span>
+                  <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item))}/pc</span>
+                  <span className="text-xs md:text-sm text-gray-200 ml-2">(Full Set) ₹{formatNumber(getPackPrice(item))}</span>
                 </p>
               </div>
             </Link>

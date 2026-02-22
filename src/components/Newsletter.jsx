@@ -43,7 +43,7 @@ const Newsletter = () => {
             onSubmit={onSubmitHandler} 
             className="w-full max-w-xl mx-auto"
           >
-            <div className="flex flex-col sm:flex-row gap-3 bg-white rounded-full shadow-lg p-2 border border-pink-100">
+            <div className="flex flex-col sm:flex-row gap-3 bg-white rounded-2xl shadow-lg p-2 border border-pink-100">
               <input 
                 className="flex-1 px-4 md:px-6 py-3 md:py-4 outline-none text-sm md:text-base rounded-full bg-transparent" 
                 type="email" 
@@ -52,7 +52,7 @@ const Newsletter = () => {
               />
               <button 
                 type="submit"
-                className="bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white text-sm md:text-base font-medium px-6 md:px-8 py-3 md:py-4 rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
+                className="bg-gradient-to-r from-rose-400 to-pink-400 hover:from-rose-500 hover:to-pink-500 text-white text-sm md:text-base font-medium px-6 md:px-8 py-3 md:py-4 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
               >
                 SUBSCRIBE
               </button>

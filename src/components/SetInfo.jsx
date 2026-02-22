@@ -5,13 +5,13 @@ const SetInfo = ({ compact = false }) => {
 
   return (
     <div className="inline-flex items-center">
-      <button
+      {/* <button
         onClick={() => setOpen((s) => !s)}
         aria-label="Set info"
         className="ml-2 text-xs text-gray-500 hover:text-pink-500 transition"
       >
         {compact ? <span className="underline">What is this?</span> : <span className="text-sm text-gray-500">What is this?</span>}
-      </button>
+      </button> */}
 
       {open && (
         <div className="mt-2 max-w-xs bg-white border rounded-lg p-3 shadow-md text-sm text-gray-700">
