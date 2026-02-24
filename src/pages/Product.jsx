@@ -105,9 +105,9 @@ const Product = () => {
   }
 
   const sizesArr = selectedVariant?.sizes || [];
-const packPrice = Number(selectedVariant?.price || 0);
-const piecesCount = sizesArr.length || 1;
-const perPiecePrice = packPrice / piecesCount;
+  const perPiecePrice = Number(selectedVariant?.price || 0);
+  const piecesCount = sizesArr.length || 1;
+  const packPrice = perPiecePrice * piecesCount;
 
 
   /* ================= CART (ADD 1 PACK ONLY) ================= */
@@ -280,7 +280,7 @@ const perPiecePrice = packPrice / piecesCount;
 
             {/* COLORS */}
             <div className="mb-6">
-              <p className="font-semibold mb-2">Select Color</p>
+              <p className="font-semibold mb-2">Select Variant</p>
               <div className="flex gap-3 flex-wrap">
                 {productData.variants.map((v) => (
                   <button
@@ -290,12 +290,12 @@ const perPiecePrice = packPrice / piecesCount;
                       setSelectedImage(v.images?.[0] || "");
                     }}
                     className={`px-4 py-2 border rounded-lg ${
-                      v.color === selectedVariant.color
+                      v.color === selectedVariant.color && v.type === selectedVariant.type
                         ? "border-pink-500 bg-pink-50"
                         : "border-gray-200"
                     }`}
                   >
-                    {v.color}
+                    {v.color}{v.type ? ` / ${v.type}` : ""}
                   </button>
                 ))}
               </div>

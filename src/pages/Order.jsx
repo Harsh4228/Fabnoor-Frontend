@@ -3,6 +3,8 @@ import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import axios from "axios";
 
+const STATUS_STEPS = ["Order Placed", "Dispatched", "Out for Delivery", "Delivered", "Cancelled"];
+
 const Order = () => {
   const { token, currency } = useContext(ShopContext);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -79,6 +81,7 @@ const Order = () => {
                       <p>Qty: {item.quantity}</p>
                       <p>Size: {item.size}</p>
                       <p>Color: {item.color}</p>
+                      {item.code && <p>Code: {item.code}</p>}
                     </div>
 
                     <p className="mt-1">
@@ -122,6 +125,31 @@ const Order = () => {
           <div className="bg-white p-6 w-[90%] max-w-lg rounded">
             <h2 className="text-xl font-semibold mb-4">Order Details</h2>
 
+            {(() => {
+              const currentIndex = STATUS_STEPS.indexOf(selectedOrder.status);
+              return (
+                <div className="mb-4">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {STATUS_STEPS.map((s, idx) => {
+                      const isCompleted = idx < currentIndex;
+                      const isActive = idx === currentIndex;
+                      return (
+                        <div key={s} className="flex items-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-500 text-white' : isActive ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                            {isCompleted ? '✓' : idx + 1}
+                          </div>
+                          <div className="text-xs ml-2 mr-2">{s}</div>
+                          {idx < STATUS_STEPS.length - 1 && (
+                            <div className={`h-1 w-8 ${idx < currentIndex ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
             <p>
               <b>Status:</b> {selectedOrder.status}
             </p>
@@ -148,7 +176,7 @@ const Order = () => {
               <b>Items:</b>
               {selectedOrder.items.map((i, idx) => (
                 <p key={idx}>
-                  {i.name} ({i.color}, {i.size}) × {i.quantity}
+                  {i.name} {i.code ? `(${i.code})` : ""} ({i.color}, {i.size}) × {i.quantity}
                 </p>
               ))}
             </div>

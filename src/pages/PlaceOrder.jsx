@@ -8,6 +8,7 @@ import axios from "axios";
 
 import Select from "react-select";
 import { Country, State } from "country-state-city";
+import { getPackPriceFromVariant } from "../utils/price";
 
 
 const PlaceOrder = () => {
@@ -127,12 +128,19 @@ const PlaceOrder = () => {
   // ================== BUILD ORDER ITEMS (FIXED FOR BOTH CART STRUCTURES) ==================
   const buildOrderItems = () => {
     const items = [];
+    const parseKey = (key) => {
+      if (!key || typeof key !== "string") return { productId: key, color: "", type: "" };
+      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "" };
+      const [pid, c, t] = key.split("::");
+      return { productId: pid, color: decodeURIComponent(c || ""), type: decodeURIComponent(t || "") };
+    };
 
-    for (const productId in cartItems) {
+    for (const cartKey in cartItems) {
+      const { productId } = parseKey(cartKey);
       const product = products.find((p) => p._id === productId);
       if (!product) continue;
 
-      const cartValue = cartItems[productId];
+      const cartValue = cartItems[cartKey];
 
       // ✅ CASE 1: cartValue has { quantity, color, type }
       if (cartValue && typeof cartValue === "object" && "quantity" in cartValue) {
@@ -149,11 +157,13 @@ const PlaceOrder = () => {
         items.push({
           productId,
           name: product.name,
+          code: matchedVariant.code || "",
           color: matchedVariant.color || cartValue?.color || "",
           type: matchedVariant.type || cartValue?.type || "",
           size: cartValue?.type || "", // optional
           quantity: qty,
-          price: Number(matchedVariant.price) || 0, 
+          // store pack price in order item (set cost)
+          price: getPackPriceFromVariant(matchedVariant) || 0,
           image: matchedVariant.images?.[0] || "",
         });
 
@@ -181,10 +191,11 @@ const PlaceOrder = () => {
           items.push({
             productId,
             name: product.name,
+            code: matchedVariant.code || "",
             color: matchedVariant.color || "",
             size,
             quantity: qty,
-            price: Number(matchedVariant.price) || 0,
+            price: getPackPriceFromVariant(matchedVariant) || 0,
             image: matchedVariant.images?.[0] || "",
           });
         }
@@ -256,9 +267,12 @@ const PlaceOrder = () => {
           }
         );
 
-        if (res.data.success && res.data.razorpayOrder) {
-          console.log('[placeOrder] Razorpay order created', res.data.razorpayOrder);
-          const rpOrder = res.data.razorpayOrder;
+        if (res.data.success) {
+          const rpOrder = res.data.razorpayOrder || res.data.order || res.data.razorpay;
+          if (!rpOrder) {
+            throw new Error('Razorpay order not returned by server');
+          }
+          console.log('[placeOrder] Razorpay order created', rpOrder);
 
           const options = {
             key: import.meta.env.VITE_RAZORPAY_KEY_ID,
@@ -272,7 +286,6 @@ const PlaceOrder = () => {
                 `${backendUrl}/api/order/verifyRazorpay`,
                 {
                   ...response,
-                  orderId: res.data.orderId,
                 },
                 {
                   headers: { Authorization: `Bearer ${token}` },

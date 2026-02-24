@@ -20,13 +20,20 @@ const CartDrawer = () => {
   const cartList = useMemo(() => {
     const arr = [];
 
-    for (const pid in cartItems) {
-      const product = products.find((p) => p._id === pid);
-      const qty = Number(cartItems[pid]?.quantity || 0);
+    const parseKey = (key) => {
+      if (!key || typeof key !== "string") return { productId: key, color: "", type: "" };
+      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "" };
+      const [pid, c, t] = key.split("::");
+      return { productId: pid, color: decodeURIComponent(c || ""), type: decodeURIComponent(t || "") };
+    };
+
+    for (const cartKey in cartItems) {
+      const item = cartItems[cartKey];
+      const { productId, color, type } = parseKey(cartKey);
+      const qty = Number(item?.quantity || 0);
       if (qty <= 0) continue;
 
-      const color = cartItems[pid]?.color || "";
-      const type = cartItems[pid]?.type || "";
+      const product = products.find((p) => p._id === productId);
 
       if (product) {
         const variant =
@@ -34,7 +41,8 @@ const CartDrawer = () => {
           product?.variants?.[0];
 
         arr.push({
-          productId: pid,
+          key: cartKey,
+          productId,
           name: product.name,
           qty,
           price: Number(variant?.price || 0),
@@ -43,10 +51,9 @@ const CartDrawer = () => {
           type: variant?.type || type,
         });
       } else {
-        // Products data hasn't loaded yet (or product not found). Show a placeholder
-        // entry so the cart doesn't appear empty while we fetch product info.
         arr.push({
-          productId: pid,
+          key: cartKey,
+          productId,
           name: "Loading product...",
           qty,
           price: 0,
@@ -95,9 +102,9 @@ const CartDrawer = () => {
           ) : (
             cartList.map((item) => (
               <div
-                key={item.productId}
-                className="flex gap-3 border rounded-xl p-3"
-              >
+                  key={item.key}
+                  className="flex gap-3 border rounded-xl p-3"
+                >
                 <img
                   src={item.image}
                   alt={item.name}
@@ -123,7 +130,7 @@ const CartDrawer = () => {
                   <div className="flex items-center gap-2 mt-2">
                     <button
                       onClick={() =>
-                        updateQuantity(item.productId, item.qty - 1)
+                        updateQuantity(item.key, item.qty - 1)
                       }
                       className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-gray-50"
                     >
@@ -136,7 +143,7 @@ const CartDrawer = () => {
 
                     <button
                       onClick={() =>
-                        updateQuantity(item.productId, item.qty + 1)
+                        updateQuantity(item.key, item.qty + 1)
                       }
                       className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-gray-50"
                     >

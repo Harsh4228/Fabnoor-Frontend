@@ -3,7 +3,7 @@ import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { assets } from "../assets/assets";
 import CartTotal from "../components/CartTotal";
-import { getPerPiecePriceFromVariant, formatNumber } from "../utils/price";
+import { getPerPiecePriceFromVariant, getPackPriceFromVariant, formatNumber } from "../utils/price";
 import SetInfo from "../components/SetInfo";
 import { toast } from "react-toastify";
 
@@ -19,18 +19,25 @@ const Cart = () => {
   useEffect(() => {
     const temp = [];
 
-    for (const productId in cartItems) {
-      const item = cartItems[productId];
+    const parseKey = (key) => {
+      if (!key || typeof key !== "string") return { productId: key, color: "", type: "" };
+      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "" };
+      const [pid, c, t] = key.split("::");
+      return { productId: pid, color: decodeURIComponent(c || ""), type: decodeURIComponent(t || "") };
+    };
 
-      // ✅ only new format allowed
+    for (const cartKey in cartItems) {
+      const item = cartItems[cartKey];
+      const { productId, color, type } = parseKey(cartKey);
+
       const qty = Number(item?.quantity || 0);
-
       if (qty > 0) {
         temp.push({
+          key: cartKey,
           productId,
           quantity: qty,
-          color: item?.color || "",
-          type: item?.type || "",
+          color: item?.color || color || "",
+          type: item?.type || type || "",
         });
       }
     }
@@ -82,6 +89,7 @@ const Cart = () => {
       sizes: Array.isArray(v.sizes) ? v.sizes : [],
       color: v.color,
       type: v.type,
+      code: v.code || "",
     };
   };
 
@@ -134,7 +142,7 @@ const Cart = () => {
 
             return (
               <div
-                key={item.productId}
+                key={item.key}
                 className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-4 md:p-6 border border-gray-100"
               >
                 <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto_auto] gap-4 md:gap-6 items-center">
@@ -160,6 +168,12 @@ const Cart = () => {
                         </span>
                       </p>
 
+                      {v.code && (
+                        <p className="text-sm text-gray-500">
+                          Code: <span className="font-medium">{v.code}</span>
+                        </p>
+                      )}
+
                       <p className="text-sm text-gray-500">
                         Pack Sizes:{" "}
                         <span className="font-medium">
@@ -173,9 +187,11 @@ const Cart = () => {
                   <div className="flex items-center gap-2 md:justify-center">
                     <div>
                       <div className="text-lg font-bold text-pink-500">
-                        {currency}{formatNumber(v.price)}
+                        {currency}{formatNumber(getPackPriceFromVariant(v))}
                       </div>
-                      <div className="text-xs text-gray-500">(Set) {currency}{formatNumber(getPerPiecePriceFromVariant(v))}/pc</div>
+                      <div className="text-xs text-gray-500">
+                        (Per pc) {currency}{formatNumber(getPerPiecePriceFromVariant(v))}
+                      </div>
                     </div>
                   </div>
 
@@ -184,7 +200,7 @@ const Cart = () => {
                     <button
                       onClick={() => {
                         const newQty = item.quantity - 1;
-                        if (newQty >= 1) updateQuantity(item.productId, newQty);
+                        if (newQty >= 1) updateQuantity(item.key, newQty);
                       }}
                       className="w-8 h-8 bg-white rounded-md flex items-center justify-center hover:bg-pink-50 transition"
                     >
@@ -197,14 +213,14 @@ const Cart = () => {
                       value={item.quantity}
                       onChange={(e) => {
                         const val = Number(e.target.value);
-                        if (val >= 1) updateQuantity(item.productId, val);
+                        if (val >= 1) updateQuantity(item.key, val);
                       }}
                       className="w-16 text-center border-0 bg-transparent font-semibold text-gray-900 focus:outline-none"
                     />
 
                     <button
                       onClick={() =>
-                        updateQuantity(item.productId, item.quantity + 1)
+                        updateQuantity(item.key, item.quantity + 1)
                       }
                       className="w-8 h-8 bg-white rounded-md flex items-center justify-center hover:bg-pink-50 transition"
                     >
@@ -216,11 +232,11 @@ const Cart = () => {
                   <div className="flex items-center gap-4 justify-between md:justify-end">
                     <p className="font-bold text-xl text-gray-900">
                       {currency}
-                      {v.price * item.quantity}
+                      {formatNumber(getPackPriceFromVariant(v) * item.quantity)}
                     </p>
 
                     <button
-                      onClick={() => updateQuantity(item.productId, 0)}
+                      onClick={() => updateQuantity(item.key, 0)}
                       aria-label={`Remove ${product.name} from cart`}
                       className="w-8 h-8 flex items-center justify-center text-gray-700 hover:text-red-600 transition-colors"
                     >

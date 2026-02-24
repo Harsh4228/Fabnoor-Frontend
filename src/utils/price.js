@@ -4,7 +4,10 @@
 // - Cart and checkout must use the pack price (full-set price) and add the full pack as the item
 // These helpers make that explicit: use `getPerPiecePrice` for UI display and `getPackPrice` when adding to cart.
 export function getPackPriceFromVariant(variant) {
-  return Number(variant?.price || 0);
+  // price field is now per-piece cost; total pack price = per-piece * number of pieces
+  const perPiece = Number(variant?.price || 0);
+  const pieces = getPiecesFromVariant(variant);
+  return perPiece * pieces;
 }
 
 export function getPiecesFromVariant(variant) {
@@ -12,7 +15,8 @@ export function getPiecesFromVariant(variant) {
 }
 
 export function getPerPiecePriceFromVariant(variant) {
-  return getPackPriceFromVariant(variant) / getPiecesFromVariant(variant);
+  // variant price stored as per-piece directly
+  return Number(variant?.price || 0);
 }
 
 export function getPerPiecePrice(product) {
@@ -31,7 +35,6 @@ export function getPackPrice(product) {
   const v = product?.variants?.[0];
   return getPackPriceFromVariant(v);
 }
-
 // Formatting helper (round to nearest integer and locale format)
 export function formatNumber(n) {
   return Math.round(n).toLocaleString();

@@ -10,9 +10,9 @@ import {
 } from './price'
 
 describe('price utilities', () => {
-  it('computes per-piece price from variant', () => {
+  it('computes per-piece price from variant (stored directly)', () => {
     const v = { price: 100, sizes: ["S", "M", "L", "XL"] };
-    expect(getPerPiecePriceFromVariant(v)).toBe(25);
+    expect(getPerPiecePriceFromVariant(v)).toBe(100);
   })
 
   it('defaults pieces to 1 when sizes missing', () => {
@@ -23,15 +23,15 @@ describe('price utilities', () => {
 
   it('computes per-piece price from product (first variant)', () => {
     const p = { variants: [{ price: 120, sizes: [1,2,3,4]}] };
-    expect(getPerPiecePrice(p)).toBe(30);
+    expect(getPerPiecePrice(p)).toBe(120);
   })
 
   it('computes min/max per-piece across variants', () => {
-    // Note: sizes should be an array of size entries (one entry per piece)
+    // price field is stored as per-piece cost; range should consider value directly
     const p = { variants: [{ price: 100, sizes: [1] }, { price: 90, sizes: [1,2,3] }] };
-    // per-piece: 100/1=100, 90/3=30 -> min 30, max 100
+    // per-piece values are 100 and 90 -> min 90, max 100
     const r = getPerPieceRange(p);
-    expect(r.min).toBe(30);
+    expect(r.min).toBe(90);
     expect(r.max).toBe(100);
   })
 
@@ -39,9 +39,10 @@ describe('price utilities', () => {
     expect(formatNumber(1234.6)).toBe('1,235');
   })
 
-  it('pack price helpers return pack/variant price', () => {
+  it('pack price helpers multiply piece cost by count', () => {
     const v = { price: 250, sizes: ["S","M"] };
-    expect(getPackPriceFromVariant(v)).toBe(250);
-    expect(getPackPrice({ variants: [v] })).toBe(250);
+    // per-piece 250, two pieces = pack 500
+    expect(getPackPriceFromVariant(v)).toBe(500);
+    expect(getPackPrice({ variants: [v] })).toBe(500);
   })
 })

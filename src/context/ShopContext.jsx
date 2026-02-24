@@ -2,6 +2,7 @@
 import { createContext, useEffect, useState, useCallback, useMemo, useRef } from "react";
 import PropTypes from 'prop-types';
 import { toast } from "react-toastify";
+import { getPackPriceFromVariant } from "../utils/price";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -79,44 +80,74 @@ export const ShopContextProvider = ({ children }) => {
   const normalizeCart = (savedCart) => {
     if (!savedCart || typeof savedCart !== "object") return {};
 
+    const encode = (s) => encodeURIComponent(String(s || ""));
+    const decode = (s) => decodeURIComponent(String(s || ""));
+    const makeKey = (pid, color, type) => `${pid}::${encode(color)}::${encode(type)}`;
+    const parseKey = (key) => {
+      if (!key || typeof key !== "string") return { productId: key, color: "", type: "" };
+      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "" };
+      const [pid, c, t] = key.split("::");
+      return { productId: pid, color: decode(c), type: decode(t) };
+    };
+
     const newCart = {};
 
-    for (const productId in savedCart) {
-      const value = savedCart[productId];
+    for (const rawKey in savedCart) {
+      const value = savedCart[rawKey];
 
-      // NEW FORMAT: { quantity, color, type }
-      if (
-        typeof value === "object" &&
-        value !== null &&
-        typeof value.quantity !== "undefined"
-      ) {
-        const qty = Number(value.quantity || 0);
-        if (qty > 0) {
-          newCart[productId] = {
-            quantity: qty,
-            color: value.color || "",
-            type: value.type || "",
-          };
+      // if the key is already composite (pid::color::type)
+      if (rawKey.includes("::")) {
+        const { productId, color, type } = parseKey(rawKey);
+
+        // VALUE expected to be { quantity, color, type } or similar
+        if (typeof value === "object" && value !== null && typeof value.quantity !== "undefined") {
+          const qty = Number(value.quantity || 0);
+          if (qty > 0) {
+            newCart[rawKey] = { quantity: qty, color: color || value.color || "", type: type || value.type || "", productId };
+          }
+        } else if (typeof value === "number") {
+          const qty = Number(value || 0);
+          if (qty > 0) {
+            newCart[rawKey] = { quantity: qty, color, type, productId };
+          }
+        } else if (typeof value === "object" && value !== null) {
+          // treat as size map -> keep as-is under composite key with quantity 1
+          const totalQty = Object.values(value).reduce((s, q) => s + Number(q || 0), 0);
+          if (totalQty > 0) {
+            newCart[rawKey] = { quantity: totalQty, color, type, productId };
+          }
         }
       }
 
-      // OLD FORMAT: { productId: number }
-      else if (typeof value === "number") {
-        const qty = Number(value || 0);
-        if (qty > 0) {
-          newCart[productId] = { quantity: qty, color: "", type: "" };
+      // legacy key (just productId)
+      else {
+        const pid = rawKey;
+
+        // NEW FORMAT: { quantity, color, type }
+        if (typeof value === "object" && value !== null && typeof value.quantity !== "undefined") {
+          const qty = Number(value.quantity || 0);
+          if (qty > 0) {
+            const key = makeKey(pid, value.color || "", value.type || "");
+            newCart[key] = { quantity: qty, color: value.color || "", type: value.type || "", productId: pid };
+          }
         }
-      }
 
-      // VERY OLD FORMAT: { S:1, M:1 }
-      else if (typeof value === "object" && value !== null) {
-        const totalQty = Object.values(value).reduce(
-          (sum, q) => sum + Number(q || 0),
-          0
-        );
+        // OLD FORMAT: number
+        else if (typeof value === "number") {
+          const qty = Number(value || 0);
+          if (qty > 0) {
+            const key = makeKey(pid, "", "");
+            newCart[key] = { quantity: qty, color: "", type: "", productId: pid };
+          }
+        }
 
-        if (totalQty > 0) {
-          newCart[productId] = { quantity: 1, color: "", type: "" };
+        // VERY OLD FORMAT: size map
+        else if (typeof value === "object" && value !== null) {
+          const totalQty = Object.values(value).reduce((sum, q) => sum + Number(q || 0), 0);
+          if (totalQty > 0) {
+            const key = makeKey(pid, "", "");
+            newCart[key] = { quantity: totalQty, color: "", type: "", productId: pid };
+          }
         }
       }
     }
@@ -186,8 +217,8 @@ export const ShopContextProvider = ({ children }) => {
   /* ================= CART COUNT ================= */
   const getCartItems = () => {
     let total = 0;
-    for (const pid in cartItems) {
-      total += Number(cartItems[pid]?.quantity || 0);
+    for (const key in cartItems) {
+      total += Number(cartItems[key]?.quantity || 0);
     }
     return total;
   };
@@ -195,16 +226,19 @@ export const ShopContextProvider = ({ children }) => {
   /* ================= ADD TO CART ================= */
   const addToCart = async (productId, color = "", type = "") => {
     // optimistic update
+    const encode = (s) => encodeURIComponent(String(s || ""));
+    const makeKey = (pid, c, t) => `${pid}::${encode(c)}::${encode(t)}`;
+
     setCartItems((prev) => {
       const updated = structuredClone(prev);
+      const key = makeKey(productId, color, type);
 
-      if (!updated[productId]) {
-        updated[productId] = { quantity: 1, color, type };
+      if (!updated[key]) {
+        updated[key] = { quantity: 1, color, type, productId };
       } else {
-        updated[productId].quantity =
-          Number(updated[productId].quantity || 0) + 1;
-        if (color) updated[productId].color = color;
-        if (type) updated[productId].type = type;
+        updated[key].quantity = Number(updated[key].quantity || 0) + 1;
+        if (color) updated[key].color = color;
+        if (type) updated[key].type = type;
       }
 
       return updated;
@@ -217,9 +251,10 @@ export const ShopContextProvider = ({ children }) => {
     if (!token) return;
 
     try {
+      const key = `${productId}::${encodeURIComponent(String(color || ''))}::${encodeURIComponent(String(type || ''))}`;
       const { data } = await axios.post(
         `${backendUrl}/api/cart/add`,
-        { itemId: productId, color, type },
+        { itemId: key, color, type },
         authHeader
       );
 
@@ -238,7 +273,7 @@ export const ShopContextProvider = ({ children }) => {
   const updateQuantity = async (productId, quantity) => {
     const qty = Number(quantity);
 
-    // optimistic update
+    // optimistic update (productId may be composite key)
     setCartItems((prev) => {
       const updated = structuredClone(prev);
 
@@ -282,9 +317,11 @@ export const ShopContextProvider = ({ children }) => {
       const { color, type } = cartItems[pid] || {};
 
       const variant = findVariant(product, color, type);
-      const price = Number(variant?.price || 0);
+      if (!variant) continue;
+      // price stored as per-piece; use full pack price for cart total
+      const packPrice = getPackPriceFromVariant(variant);
 
-      total += qty * price;
+      total += qty * packPrice;
     }
 
     return total;
