@@ -37,7 +37,7 @@ const Hero = ({ interval = 4000 }) => {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
 
       <div
-        className="w-full h-[420px] sm:h-[520px] relative"
+        className="w-full h-[60vw] sm:h-[400px] md:h-[520px] relative"
         onTouchStart={(e) => (touchStartX.current = e.touches?.[0]?.clientX)}
         onTouchEnd={(e) => {
           const endX = e.changedTouches?.[0]?.clientX;
@@ -54,9 +54,8 @@ const Hero = ({ interval = 4000 }) => {
             key={i}
             src={src}
             alt={`hero-${i}`}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-800 ${
-              i === index ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`absolute inset-0 w-full h-full object-contain md:object-cover transition-opacity duration-800 ${i === index ? 'opacity-100' : 'opacity-0'
+              }`}
           />
         ))}
 
@@ -82,9 +81,8 @@ const Hero = ({ interval = 4000 }) => {
             <button
               key={i}
               onClick={() => setIndex(i)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                i === index ? 'bg-white' : 'bg-white/40'
-              }`}
+              className={`w-2 h-2 rounded-full transition-colors ${i === index ? 'bg-white' : 'bg-white/40'
+                }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}

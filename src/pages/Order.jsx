@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState, useCallback } from "react";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
+import ReviewModal from "../components/ReviewModal";
 import axios from "axios";
 
 const STATUS_STEPS = ["Order Placed", "Dispatched", "Out for Delivery", "Delivered", "Cancelled"];
@@ -11,6 +12,9 @@ const Order = () => {
 
   const [orderData, setOrderData] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  // Review modal state
+  const [reviewTarget, setReviewTarget] = useState(null); // { item, orderId }
 
   const loadOrderData = useCallback(async () => {
     try {
@@ -37,6 +41,13 @@ const Order = () => {
   useEffect(() => {
     loadOrderData();
   }, [loadOrderData]);
+
+  // Build the same dedupe key as the backend
+  const getReviewKey = (item) =>
+    `${item.productId}_${item.code || item.color}`;
+
+  const isReviewed = (order, item) =>
+    (order.reviewedItems || []).includes(getReviewKey(item));
 
   return (
     <div className="border-t pt-16">
@@ -102,16 +113,43 @@ const Order = () => {
 
                 <div className="md:w-1/2 flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span
+                      className={`w-2 h-2 rounded-full ${order.status === "Delivered"
+                          ? "bg-green-500"
+                          : order.status === "Cancelled"
+                            ? "bg-red-500"
+                            : "bg-blue-500"
+                        }`}
+                    />
                     <p className="text-sm md:text-base">{order.status}</p>
                   </div>
 
-                  <button
-                    onClick={() => setSelectedOrder(order)}
-                    className="border border-gray-300 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100"
-                  >
-                    Track Order
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Write a Review button – only for Delivered orders */}
+                    {order.status === "Delivered" && (
+                      isReviewed(order, item) ? (
+                        <span className="text-xs text-green-600 font-medium flex items-center gap-1 border border-green-200 rounded-full px-3 py-1 bg-green-50">
+                          ✓ Reviewed
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            setReviewTarget({ item, orderId: order._id })
+                          }
+                          className="text-xs border border-pink-400 text-pink-500 px-3 py-1 rounded-full hover:bg-pink-50 transition font-medium"
+                        >
+                          ★ Write a Review
+                        </button>
+                      )
+                    )}
+
+                    <button
+                      onClick={() => setSelectedOrder(order)}
+                      className="border border-gray-300 px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-100"
+                    >
+                      Track Order
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -189,6 +227,16 @@ const Order = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* ================= REVIEW MODAL ================= */}
+      {reviewTarget && (
+        <ReviewModal
+          item={reviewTarget.item}
+          orderId={reviewTarget.orderId}
+          onClose={() => setReviewTarget(null)}
+          onSuccess={loadOrderData}
+        />
       )}
     </div>
   );
