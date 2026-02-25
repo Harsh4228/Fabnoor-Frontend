@@ -18,6 +18,8 @@ const Product = () => {
     addToWishlist,
     removeFromWishlist,
     isInWishlist,
+    navigate,
+    setShowCartDrawer,
   } = useContext(ShopContext);
 
   const [productData, setProductData] = useState(null);
@@ -118,9 +120,20 @@ const Product = () => {
     }
 
     // ✅ IMPORTANT: send variant info also
-    addToCart(productData._id, selectedVariant.color, selectedVariant.type);
+    addToCart(productData._id, selectedVariant.color, selectedVariant.fabric, selectedVariant.code);
 
     toast.success("Pack added to cart 🛒");
+  };
+
+  const handleBuyNow = async () => {
+    if (Number(selectedVariant.stock || 0) <= 0) {
+      toast.error("Out of stock");
+      return;
+    }
+
+    await addToCart(productData._id, selectedVariant.color, selectedVariant.fabric, selectedVariant.code);
+    setShowCartDrawer(false);
+    navigate('/place-order');
   };
 
   /* ================= WISHLIST ================= */
@@ -184,11 +197,10 @@ const Product = () => {
                 <button
                   key={i}
                   onClick={() => setSelectedImageIndex(i)}
-                  className={`w-20 sm:w-full aspect-square rounded-lg border-2 ${
-                    selectedImageIndex === i
-                      ? "border-pink-500 ring-2 ring-pink-200"
-                      : "border-gray-200"
-                  }`}
+                  className={`w-20 sm:w-full aspect-square rounded-lg border-2 ${selectedImageIndex === i
+                    ? "border-pink-500 ring-2 ring-pink-200"
+                    : "border-gray-200"
+                    }`}
                 >
                   <img src={img} className="w-full h-full object-cover" />
                 </button>
@@ -245,34 +257,48 @@ const Product = () => {
             </div>
 
             <p className="text-sm text-gray-600 mb-4">
-              <b>Type:</b> {selectedVariant.type}
+              <b>Fabric:</b> {selectedVariant.fabric || selectedVariant.type || "—"}
             </p>
 
             <p className="text-4xl font-bold text-pink-500 mb-1">
-  {currency}
-  {formatNumber(perPiecePrice)}
-  <span className="text-sm font-medium text-gray-500 ml-2">(Per piece)</span>
-</p>
-
-<p className="text-sm text-gray-600 mb-4">
-  <b>Set price:</b>{" "}
-  <span className="font-semibold text-gray-800">
-    {currency}
-    {formatNumber(packPrice)}
-  </span>{" "}
-  | Total Pieces:{" "}
-  <span className="font-semibold text-gray-800">{piecesCount}</span>
-</p>
-
-
-            <p className="text-sm text-gray-500 mb-6">
-              Stock:{" "}
-              <span className="font-semibold">
-                {Number(selectedVariant.stock || 0) > 0
-                  ? selectedVariant.stock
-                  : "Out of stock"}
-              </span>
+              {currency}
+              {formatNumber(perPiecePrice)}
+              <span className="text-sm font-medium text-gray-500 ml-2">(Per piece)</span>
             </p>
+
+            <p className="text-sm text-gray-600 mb-4">
+              <b>Set price:</b>{" "}
+              <span className="font-semibold text-gray-800">
+                {currency}
+                {formatNumber(packPrice)}
+              </span>{" "}
+              | Total Pieces:{" "}
+              <span className="font-semibold text-gray-800">{piecesCount}</span>
+            </p>
+
+
+            {/* STOCK STATUS BADGE - no exact number shown in frontend */}
+            {(() => {
+              const stock = Number(selectedVariant.stock || 0);
+              if (stock === 0) return (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-600 text-xs font-bold mb-4">
+                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                  Out of Stock
+                </span>
+              );
+              if (stock < 6) return (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold mb-4">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  Low Stock
+                </span>
+              );
+              return (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold mb-4">
+                  <span className="w-2 h-2 rounded-full bg-green-500" />
+                  In Stock
+                </span>
+              );
+            })()}
 
             <p className="text-gray-600 leading-relaxed mb-8">
               {productData.description}
@@ -282,20 +308,20 @@ const Product = () => {
             <div className="mb-6">
               <p className="font-semibold mb-2">Select Variant</p>
               <div className="flex gap-3 flex-wrap">
-                {productData.variants.map((v) => (
+                {productData.variants.map((v, idx) => (
                   <button
-                    key={`${v.color}-${v.type}`}
+                    key={v.code || `${v.color}-${v.fabric || v.type}-${idx}`}
                     onClick={() => {
                       setSelectedVariant(v);
                       setSelectedImage(v.images?.[0] || "");
                     }}
-                    className={`px-4 py-2 border rounded-lg ${
-                      v.color === selectedVariant.color && v.type === selectedVariant.type
-                        ? "border-pink-500 bg-pink-50"
-                        : "border-gray-200"
-                    }`}
+                    className={`px-4 py-2 border rounded-lg ${v.code === selectedVariant.code || (v.color === selectedVariant.color && v.fabric === selectedVariant.fabric && !v.code)
+                      ? "border-pink-500 bg-pink-50"
+                      : "border-gray-200"
+                      }`}
                   >
-                    {v.color}{v.type ? ` / ${v.type}` : ""}
+                    {v.color}{v.fabric ? ` / ${v.fabric}` : ""}
+                    {v.code ? ` (${v.code})` : ""}
                   </button>
                 ))}
               </div>
@@ -321,17 +347,29 @@ const Product = () => {
               </p>
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              disabled={Number(selectedVariant.stock || 0) <= 0}
-              className={`w-full py-4 rounded-xl font-semibold text-white transition ${
-                Number(selectedVariant.stock || 0) <= 0
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-gradient-to-r from-pink-500 to-rose-500"
-              }`}
-            >
-              ADD PACK TO CART
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+              <button
+                onClick={handleAddToCart}
+                disabled={Number(selectedVariant.stock || 0) <= 0}
+                className={`flex-1 py-4 rounded-xl font-semibold transition border-2 ${Number(selectedVariant.stock || 0) <= 0
+                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                  : "bg-white text-pink-500 border-pink-500 hover:bg-pink-50"
+                  }`}
+              >
+                ADD TO CART
+              </button>
+
+              <button
+                onClick={handleBuyNow}
+                disabled={Number(selectedVariant.stock || 0) <= 0}
+                className={`flex-1 py-4 rounded-xl font-semibold text-white transition ${Number(selectedVariant.stock || 0) <= 0
+                  ? "bg-gray-300 cursor-not-allowed border-2 border-gray-300"
+                  : "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-md hover:shadow-lg border-2 border-transparent"
+                  }`}
+              >
+                BUY NOW
+              </button>
+            </div>
           </div>
         </div>
 
@@ -345,26 +383,26 @@ const Product = () => {
 
       {/* ================= IMAGE PREVIEW ================= */}
       {isPreviewOpen && (
+        <div
+          onClick={closePreview}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center"
+        >
           <div
-            onClick={closePreview}
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+            onWheel={handleWheel}
+            onTouchStart={(e) => (touchStartX.current = e.touches?.[0]?.clientX)}
+            onTouchEnd={(e) => {
+              const endX = e.changedTouches?.[0]?.clientX;
+              if (touchStartX.current == null || endX == null) return;
+              const diff = touchStartX.current - endX;
+              if (Math.abs(diff) > 40) {
+                if (diff > 0) nextImage();
+                else prevImage();
+              }
+              touchStartX.current = null;
+            }}
+            className="relative w-full max-w-5xl h-[85vh] overflow-hidden flex items-center justify-center"
           >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              onWheel={handleWheel}
-              onTouchStart={(e) => (touchStartX.current = e.touches?.[0]?.clientX)}
-              onTouchEnd={(e) => {
-                const endX = e.changedTouches?.[0]?.clientX;
-                if (touchStartX.current == null || endX == null) return;
-                const diff = touchStartX.current - endX;
-                if (Math.abs(diff) > 40) {
-                  if (diff > 0) nextImage();
-                  else prevImage();
-                }
-                touchStartX.current = null;
-              }}
-              className="relative w-full max-w-5xl h-[85vh] overflow-hidden flex items-center justify-center"
-            >
             <button
               onClick={closePreview}
               className="absolute top-4 right-4 z-50 w-10 h-10 bg-white rounded-full flex items-center justify-center text-2xl font-bold text-gray-700 hover:bg-red-50 hover:text-red-500"

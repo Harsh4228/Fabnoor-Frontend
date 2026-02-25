@@ -29,8 +29,8 @@ const PlaceOrder = () => {
   const maskToken = (t) => {
     if (!t) return '<none>';
     if (t.length <= 12) return t.replace(/.(?=.{4})/g, '*');
-    return `${t.slice(0,6)}...${t.slice(-4)}`;
-  }; 
+    return `${t.slice(0, 6)}...${t.slice(-4)}`;
+  };
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -129,42 +129,63 @@ const PlaceOrder = () => {
   const buildOrderItems = () => {
     const items = [];
     const parseKey = (key) => {
-      if (!key || typeof key !== "string") return { productId: key, color: "", type: "" };
-      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "" };
-      const [pid, c, t] = key.split("::");
-      return { productId: pid, color: decodeURIComponent(c || ""), type: decodeURIComponent(t || "") };
+      if (!key || typeof key !== "string") return { productId: key, color: "", type: "", code: "" };
+      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "", code: "" };
+      const [pid, c, t, cd] = key.split("::");
+      return {
+        productId: pid,
+        color: decodeURIComponent(c || ""),
+        type: decodeURIComponent(t || ""),
+        code: cd !== undefined ? decodeURIComponent(cd) : "",
+      };
     };
 
     for (const cartKey in cartItems) {
-      const { productId } = parseKey(cartKey);
+      const { productId, color: keyColor, type: keyType, code: keyCode } = parseKey(cartKey);
       const product = products.find((p) => p._id === productId);
       if (!product) continue;
 
       const cartValue = cartItems[cartKey];
 
-      // ✅ CASE 1: cartValue has { quantity, color, type }
+      // ✅ CASE 1: cartValue has { quantity, color, type, code }
       if (cartValue && typeof cartValue === "object" && "quantity" in cartValue) {
         const qty = Number(cartValue?.quantity || 0);
         if (qty <= 0) continue;
 
+        // Match variant by code first, then color+type, then fallback
+        const itemColor = cartValue?.color || keyColor;
+        const itemType = cartValue?.type || keyType;
+        const itemCode = cartValue?.code || keyCode;
+
         const matchedVariant =
-          product?.variants?.find(
-            (v) => v.color === cartValue?.color && v.type === cartValue?.type
-          ) || product?.variants?.[0];
+          (itemCode && product?.variants?.find((v) => v.code === itemCode)) ||
+          product?.variants?.find((v) => v.color === itemColor && v.type === itemType) ||
+          product?.variants?.[0];
 
         if (!matchedVariant) continue;
+
+        // image must be a non-empty string — fallback to first variant's image
+        const image =
+          matchedVariant.images?.[0] ||
+          product?.variants?.[0]?.images?.[0] ||
+          "";
+
+        if (!image) continue; // skip if absolutely no image available
 
         items.push({
           productId,
           name: product.name,
           code: matchedVariant.code || "",
-          color: matchedVariant.color || cartValue?.color || "",
-          type: matchedVariant.type || cartValue?.type || "",
-          size: cartValue?.type || "", // optional
+          color: matchedVariant.color || itemColor || "",
+          fabric: matchedVariant.fabric || matchedVariant.type || itemType || "",
+          type: matchedVariant.fabric || matchedVariant.type || itemType || "",
+          // size must be an Array of strings per the order schema
+          size: Array.isArray(matchedVariant.sizes) && matchedVariant.sizes.length
+            ? matchedVariant.sizes
+            : [matchedVariant.fabric || matchedVariant.type || itemType || ""],
           quantity: qty,
-          // store pack price in order item (set cost)
           price: getPackPriceFromVariant(matchedVariant) || 0,
-          image: matchedVariant.images?.[0] || "",
+          image,
         });
 
         continue;
@@ -177,7 +198,6 @@ const PlaceOrder = () => {
           if (qty <= 0) continue;
 
           let matchedVariant = null;
-
           for (const variant of product.variants || []) {
             const sizes = Array.isArray(variant.sizes) ? variant.sizes : [];
             if (sizes.includes(String(size))) {
@@ -185,18 +205,27 @@ const PlaceOrder = () => {
               break;
             }
           }
-
+          if (!matchedVariant) matchedVariant = product?.variants?.[0];
           if (!matchedVariant) continue;
+
+          const image =
+            matchedVariant.images?.[0] ||
+            product?.variants?.[0]?.images?.[0] ||
+            "";
+
+          if (!image) continue;
 
           items.push({
             productId,
             name: product.name,
             code: matchedVariant.code || "",
             color: matchedVariant.color || "",
-            size,
+            fabric: matchedVariant.fabric || matchedVariant.type || "",
+            type: matchedVariant.fabric || matchedVariant.type || "",
+            size: [size],
             quantity: qty,
             price: getPackPriceFromVariant(matchedVariant) || 0,
-            image: matchedVariant.images?.[0] || "",
+            image,
           });
         }
       }
@@ -212,12 +241,12 @@ const PlaceOrder = () => {
     if (!validateForm()) return;
 
     if (!token) {
-    alert('Please login to place an order');
-    navigate('/login');
-    return;
-  }
+      alert('Please login to place an order');
+      navigate('/login');
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
     try {
       const items = buildOrderItems();
@@ -252,7 +281,7 @@ const PlaceOrder = () => {
           console.log('[placeOrder] COD success', res.data);
           setCartItems({});
           localStorage.removeItem("cartItems");
-          navigate("/order",{replace:true});
+          navigate("/order", { replace: true });
         }
       }
 
@@ -296,7 +325,7 @@ const PlaceOrder = () => {
                 console.log('[placeOrder] Razorpay verify success', verify.data);
                 setCartItems({});
                 localStorage.removeItem("cartItems");
-                navigate("/order",{replace:true});
+                navigate("/order", { replace: true });
               }
             },
           };
@@ -533,11 +562,10 @@ const PlaceOrder = () => {
                   <button
                     type="button"
                     onClick={() => setMethod("razorpay")}
-                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${
-                      method === "razorpay"
-                        ? "border-pink-500 bg-pink-50"
-                        : "border-gray-200 hover:border-pink-300"
-                    }`}
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${method === "razorpay"
+                      ? "border-pink-500 bg-pink-50"
+                      : "border-gray-200 hover:border-pink-300"
+                      }`}
                   >
                     <img
                       className="h-6"
@@ -549,11 +577,10 @@ const PlaceOrder = () => {
                   <button
                     type="button"
                     onClick={() => setMethod("cod")}
-                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold ${
-                      method === "cod"
-                        ? "border-pink-500 bg-pink-50 text-pink-600"
-                        : "border-gray-200 text-gray-700 hover:border-pink-300"
-                    }`}
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold ${method === "cod"
+                      ? "border-pink-500 bg-pink-50 text-pink-600"
+                      : "border-gray-200 text-gray-700 hover:border-pink-300"
+                      }`}
                   >
                     CASH ON DELIVERY
                   </button>

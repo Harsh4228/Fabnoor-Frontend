@@ -2,6 +2,7 @@ import { useContext, useMemo } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 import { FaTimes } from "react-icons/fa";
+import { formatNumber } from "../utils/price";
 
 const CartDrawer = () => {
   const {
@@ -16,29 +17,34 @@ const CartDrawer = () => {
     navigate,
   } = useContext(ShopContext);
 
-  // convert cart object to array for rendering
+  // convert cart object to array for rendering — newest items at top
   const cartList = useMemo(() => {
     const arr = [];
 
     const parseKey = (key) => {
-      if (!key || typeof key !== "string") return { productId: key, color: "", type: "" };
-      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "" };
-      const [pid, c, t] = key.split("::");
-      return { productId: pid, color: decodeURIComponent(c || ""), type: decodeURIComponent(t || "") };
+      if (!key || typeof key !== "string") return { productId: key, color: "", type: "", code: "" };
+      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "", code: "" };
+      const [pid, c, t, cd] = key.split("::");
+      return { productId: pid, color: decodeURIComponent(c || ""), type: decodeURIComponent(t || ""), code: cd !== undefined ? decodeURIComponent(cd) : "" };
     };
 
     for (const cartKey in cartItems) {
       const item = cartItems[cartKey];
-      const { productId, color, type } = parseKey(cartKey);
+      const { productId, color, fabric, code } = parseKey(cartKey);
       const qty = Number(item?.quantity || 0);
       if (qty <= 0) continue;
 
       const product = products.find((p) => p._id === productId);
 
       if (product) {
-        const variant =
-          product?.variants?.find((v) => v.color === color && v.type === type) ||
-          product?.variants?.[0];
+        let variant;
+        if (code) {
+          variant = product?.variants?.find((v) => v.code === code);
+        }
+        if (!variant) {
+          variant = product?.variants?.find((v) => v.color === color && v.fabric === fabric) ||
+            product?.variants?.[0];
+        }
 
         arr.push({
           key: cartKey,
@@ -46,9 +52,11 @@ const CartDrawer = () => {
           name: product.name,
           qty,
           price: Number(variant?.price || 0),
+          packPrice: Number(variant?.price || 0) * (variant?.sizes?.length || 1),
           image: variant?.images?.[0] || assets.placeholder_image,
           color: variant?.color || color,
-          type: variant?.type || type,
+          fabric: variant?.fabric || fabric,
+          code: variant?.code || code,
         });
       } else {
         arr.push({
@@ -57,14 +65,17 @@ const CartDrawer = () => {
           name: "Loading product...",
           qty,
           price: 0,
+          packPrice: 0,
           image: assets.placeholder_image,
           color,
-          type,
+          fabric,
+          code,
         });
       }
     }
 
-    return arr;
+    // Reverse so the newest-added item is at the top
+    return arr.reverse();
   }, [cartItems, products]);
 
   const subtotal = getCartAmount();
@@ -102,9 +113,9 @@ const CartDrawer = () => {
           ) : (
             cartList.map((item) => (
               <div
-                  key={item.key}
-                  className="flex gap-3 border rounded-xl p-3"
-                >
+                key={item.key}
+                className="flex gap-3 border rounded-xl p-3"
+              >
                 <img
                   src={item.image}
                   alt={item.name}
@@ -118,12 +129,14 @@ const CartDrawer = () => {
 
                   <p className="text-xs text-gray-500">
                     {item.color ? `Color: ${item.color}` : ""}
-                    {item.type ? ` | Type: ${item.type}` : ""}
+                    {item.fabric ? ` | Fabric: ${item.fabric}` : ""}
                   </p>
 
                   <p className="text-sm font-bold text-rose-500 mt-1">
-                    {currency}
-                    {item.price}
+                    {currency}{formatNumber(item.packPrice || item.price)}
+                    {item.packPrice && item.price !== item.packPrice && (
+                      <span className="text-xs text-gray-400 font-normal ml-1">(pack)</span>
+                    )}
                   </p>
 
                   {/* qty controls */}
@@ -199,9 +212,9 @@ const CartDrawer = () => {
               setShowCartDrawer(false);
               navigate("/place-order");
             }}
-            className="w-full mt-3 border border-rose-500 text-rose-500 py-3 rounded-xl font-semibold disabled:opacity-50"
+            className="w-full mt-3 border border-rose-500 text-rose-500 py-3 rounded-xl font-semibold hover:bg-rose-50 transition-colors disabled:opacity-50"
           >
-            Checkout
+            Buy Now
           </button>
         </div>
       </div>

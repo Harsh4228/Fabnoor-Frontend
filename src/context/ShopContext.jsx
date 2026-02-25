@@ -46,7 +46,7 @@ export const ShopContextProvider = ({ children }) => {
           lockUntil: drawerLockUntilRef.current,
           stack: new Error().stack,
         });
-      } catch (e) {}
+      } catch (e) { }
       return;
     }
 
@@ -71,7 +71,7 @@ export const ShopContextProvider = ({ children }) => {
       // debug log for opens/closes
       // eslint-disable-next-line no-console
       console.log("setShowCartDrawer ->", val, { programmatic, now });
-    } catch (e) {}
+    } catch (e) { }
 
     setShowCartDrawerState(val);
   };
@@ -82,12 +82,12 @@ export const ShopContextProvider = ({ children }) => {
 
     const encode = (s) => encodeURIComponent(String(s || ""));
     const decode = (s) => decodeURIComponent(String(s || ""));
-    const makeKey = (pid, color, type) => `${pid}::${encode(color)}::${encode(type)}`;
+    const makeKey = (pid, color, type, code) => `${pid}::${encode(color)}::${encode(type)}::${encode(code)}`;
     const parseKey = (key) => {
-      if (!key || typeof key !== "string") return { productId: key, color: "", type: "" };
-      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "" };
-      const [pid, c, t] = key.split("::");
-      return { productId: pid, color: decode(c), type: decode(t) };
+      if (!key || typeof key !== "string") return { productId: key, color: "", type: "", code: "" };
+      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "", code: "" };
+      const [pid, c, t, cd] = key.split("::");
+      return { productId: pid, color: decode(c), type: decode(t), code: cd !== undefined ? decode(cd) : "" };
     };
 
     const newCart = {};
@@ -97,24 +97,24 @@ export const ShopContextProvider = ({ children }) => {
 
       // if the key is already composite (pid::color::type)
       if (rawKey.includes("::")) {
-        const { productId, color, type } = parseKey(rawKey);
+        const { productId, color, type, code } = parseKey(rawKey);
 
-        // VALUE expected to be { quantity, color, type } or similar
+        // VALUE expected to be { quantity, color, type, code } or similar
         if (typeof value === "object" && value !== null && typeof value.quantity !== "undefined") {
           const qty = Number(value.quantity || 0);
           if (qty > 0) {
-            newCart[rawKey] = { quantity: qty, color: color || value.color || "", type: type || value.type || "", productId };
+            newCart[rawKey] = { quantity: qty, color: color || value.color || "", type: type || value.type || "", code: code || value.code || "", productId };
           }
         } else if (typeof value === "number") {
           const qty = Number(value || 0);
           if (qty > 0) {
-            newCart[rawKey] = { quantity: qty, color, type, productId };
+            newCart[rawKey] = { quantity: qty, color, type, code, productId };
           }
         } else if (typeof value === "object" && value !== null) {
           // treat as size map -> keep as-is under composite key with quantity 1
           const totalQty = Object.values(value).reduce((s, q) => s + Number(q || 0), 0);
           if (totalQty > 0) {
-            newCart[rawKey] = { quantity: totalQty, color, type, productId };
+            newCart[rawKey] = { quantity: totalQty, color, type, code, productId };
           }
         }
       }
@@ -123,12 +123,12 @@ export const ShopContextProvider = ({ children }) => {
       else {
         const pid = rawKey;
 
-        // NEW FORMAT: { quantity, color, type }
+        // NEW FORMAT: { quantity, color, type, code }
         if (typeof value === "object" && value !== null && typeof value.quantity !== "undefined") {
           const qty = Number(value.quantity || 0);
           if (qty > 0) {
-            const key = makeKey(pid, value.color || "", value.type || "");
-            newCart[key] = { quantity: qty, color: value.color || "", type: value.type || "", productId: pid };
+            const key = makeKey(pid, value.color || "", value.type || "", value.code || "");
+            newCart[key] = { quantity: qty, color: value.color || "", type: value.type || "", code: value.code || "", productId: pid };
           }
         }
 
@@ -136,8 +136,8 @@ export const ShopContextProvider = ({ children }) => {
         else if (typeof value === "number") {
           const qty = Number(value || 0);
           if (qty > 0) {
-            const key = makeKey(pid, "", "");
-            newCart[key] = { quantity: qty, color: "", type: "", productId: pid };
+            const key = makeKey(pid, "", "", "");
+            newCart[key] = { quantity: qty, color: "", type: "", code: "", productId: pid };
           }
         }
 
@@ -145,8 +145,8 @@ export const ShopContextProvider = ({ children }) => {
         else if (typeof value === "object" && value !== null) {
           const totalQty = Object.values(value).reduce((sum, q) => sum + Number(q || 0), 0);
           if (totalQty > 0) {
-            const key = makeKey(pid, "", "");
-            newCart[key] = { quantity: totalQty, color: "", type: "", productId: pid };
+            const key = makeKey(pid, "", "", "");
+            newCart[key] = { quantity: totalQty, color: "", type: "", code: "", productId: pid };
           }
         }
       }
@@ -201,12 +201,17 @@ export const ShopContextProvider = ({ children }) => {
   }, [guestWishlist]);
 
   /* ================= FIND VARIANT ================= */
-  const findVariant = (product, color, type) => {
+  const findVariant = (product, color, fabric, code) => {
     if (!product?.variants?.length) return null;
 
-    if (color && type) {
+    if (code) {
+      const matched = product.variants.find((v) => v.code === code);
+      if (matched) return matched;
+    }
+
+    if (color && fabric) {
       const matched = product.variants.find(
-        (v) => v.color === color && v.type === type
+        (v) => v.color === color && v.fabric === fabric
       );
       if (matched) return matched;
     }
@@ -224,21 +229,22 @@ export const ShopContextProvider = ({ children }) => {
   };
 
   /* ================= ADD TO CART ================= */
-  const addToCart = async (productId, color = "", type = "") => {
-    // optimistic update
+  const addToCart = async (productId, color = "", fabric = "", code = "") => {
     const encode = (s) => encodeURIComponent(String(s || ""));
-    const makeKey = (pid, c, t) => `${pid}::${encode(c)}::${encode(t)}`;
+    const makeKey = (pid, c, f, cd) => `${pid}::${encode(c)}::${encode(f)}::${encode(cd)}`;
+    const key = makeKey(productId, color, fabric, code);
 
+    // Optimistic update — always runs immediately, never awaited
     setCartItems((prev) => {
       const updated = structuredClone(prev);
-      const key = makeKey(productId, color, type);
 
       if (!updated[key]) {
-        updated[key] = { quantity: 1, color, type, productId };
+        updated[key] = { quantity: 1, color, fabric, code, productId };
       } else {
         updated[key].quantity = Number(updated[key].quantity || 0) + 1;
         if (color) updated[key].color = color;
-        if (type) updated[key].type = type;
+        if (fabric) updated[key].fabric = fabric;
+        if (code) updated[key].code = code;
       }
 
       return updated;
@@ -247,20 +253,18 @@ export const ShopContextProvider = ({ children }) => {
     // ✅ OPEN SIDE CART DRAWER WHEN ADD ITEM
     setShowCartDrawer(true);
 
-    // ✅ if no token, don't sync with backend (no error toast)
+    // ✅ if no token, don't sync with backend
     if (!token) return;
 
     try {
-      const key = `${productId}::${encodeURIComponent(String(color || ''))}::${encodeURIComponent(String(type || ''))}`;
-      const { data } = await axios.post(
+      await axios.post(
         `${backendUrl}/api/cart/add`,
-        { itemId: key, color, type },
+        { itemId: key, color, fabric, code },
         authHeader
       );
-
-      if (data.success) {
-        setCartItems(normalizeCart(data.cartData || {}));
-      }
+      // ⚠️ DO NOT call setCartItems here — the optimistic update is correct.
+      // Replacing state from the server response would overwrite other items
+      // that were added between clicks (race condition).
     } catch (err) {
       console.log("Cart sync add error:", err);
       toast.error(
@@ -273,7 +277,7 @@ export const ShopContextProvider = ({ children }) => {
   const updateQuantity = async (productId, quantity) => {
     const qty = Number(quantity);
 
-    // optimistic update (productId may be composite key)
+    // Optimistic update (productId may be composite key)
     setCartItems((prev) => {
       const updated = structuredClone(prev);
 
@@ -288,15 +292,12 @@ export const ShopContextProvider = ({ children }) => {
     if (!token) return;
 
     try {
-      const { data } = await axios.post(
+      await axios.post(
         `${backendUrl}/api/cart/update`,
         { itemId: productId, quantity: qty },
         authHeader
       );
-
-      if (data.success) {
-        setCartItems(normalizeCart(data.cartData || {}));
-      }
+      // ⚠️ DO NOT replace state from server response — optimistic update is correct.
     } catch (err) {
       console.log("Cart sync update error:", err);
       toast.error(
@@ -309,18 +310,26 @@ export const ShopContextProvider = ({ children }) => {
   const getCartAmount = () => {
     let total = 0;
 
-    for (const pid in cartItems) {
-      const product = products.find((p) => p._id === pid);
+    const parseKeyProductId = (key) => {
+      if (!key || typeof key !== "string") return key;
+      // composite key: pid::color::type::code
+      if (key.includes("::")) return key.split("::")[0];
+      return key;
+    };
+
+    for (const cartKey in cartItems) {
+      const productId = parseKeyProductId(cartKey);
+      const product = products.find((p) => p._id === productId);
       if (!product) continue;
 
-      const qty = Number(cartItems[pid]?.quantity || 0);
-      const { color, type } = cartItems[pid] || {};
+      const qty = Number(cartItems[cartKey]?.quantity || 0);
+      const { color, fabric, code } = cartItems[cartKey] || {};
 
-      const variant = findVariant(product, color, type);
+      const variant = findVariant(product, color, fabric, code);
       if (!variant) continue;
+
       // price stored as per-piece; use full pack price for cart total
       const packPrice = getPackPriceFromVariant(variant);
-
       total += qty * packPrice;
     }
 
@@ -385,7 +394,7 @@ export const ShopContextProvider = ({ children }) => {
           localStorage.removeItem("cartItems");
           try {
             localStorage.setItem("cartMerged", "1");
-          } catch (e) {}
+          } catch (e) { }
         } else {
           // server returned empty cart after merge — keep local guest cart
           console.warn("Merge returned empty server cart; keeping local guest cart.");
@@ -471,8 +480,8 @@ export const ShopContextProvider = ({ children }) => {
     } catch (err) {
       toast.error(
         err?.response?.data?.message ||
-          err?.message ||
-          "Failed to remove from wishlist"
+        err?.message ||
+        "Failed to remove from wishlist"
       );
     }
   };

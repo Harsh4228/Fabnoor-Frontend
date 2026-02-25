@@ -11,7 +11,7 @@ const Cart = () => {
   const { products, cartItems, currency, updateQuantity, navigate } =
     useContext(ShopContext);
 
-    
+
   const [cartData, setCartData] = useState([]);
   const prevCartDataRef = useRef([]);
 
@@ -20,15 +20,15 @@ const Cart = () => {
     const temp = [];
 
     const parseKey = (key) => {
-      if (!key || typeof key !== "string") return { productId: key, color: "", type: "" };
-      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "" };
-      const [pid, c, t] = key.split("::");
-      return { productId: pid, color: decodeURIComponent(c || ""), type: decodeURIComponent(t || "") };
+      if (!key || typeof key !== "string") return { productId: key, color: "", type: "", code: "" };
+      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "", code: "" };
+      const [pid, c, t, cd] = key.split("::");
+      return { productId: pid, color: decodeURIComponent(c || ""), type: decodeURIComponent(t || ""), code: cd !== undefined ? decodeURIComponent(cd) : "" };
     };
 
     for (const cartKey in cartItems) {
       const item = cartItems[cartKey];
-      const { productId, color, type } = parseKey(cartKey);
+      const { productId, color, type, code } = parseKey(cartKey);
 
       const qty = Number(item?.quantity || 0);
       if (qty > 0) {
@@ -38,6 +38,7 @@ const Cart = () => {
           quantity: qty,
           color: item?.color || color || "",
           type: item?.type || type || "",
+          code: item?.code || code || "",
         });
       }
     }
@@ -69,13 +70,18 @@ const Cart = () => {
   }, [cartData]);
 
   /* ================= GET WHOLESALE VARIANT ================= */
-  const getWholesaleVariant = (product, color, type) => {
+  const getWholesaleVariant = (product, color, type, code) => {
     if (!product?.variants?.length) return null;
 
     // try match selected variant
-    let v =
-      product.variants.find((x) => x.color === color && x.type === type) ||
-      product.variants[0];
+    let v;
+    if (code) {
+      v = product.variants.find((x) => x.code === code);
+    }
+    if (!v) {
+      v = product.variants.find((x) => x.color === color && x.type === type) ||
+        product.variants[0];
+    }
 
     if (!v) return null;
 
@@ -137,7 +143,7 @@ const Cart = () => {
             const product = products.find((p) => p._id === item.productId);
             if (!product) return null;
 
-            const v = getWholesaleVariant(product, item.color, item.type);
+            const v = getWholesaleVariant(product, item.color, item.type, item.code);
             if (!v) return null;
 
             return (

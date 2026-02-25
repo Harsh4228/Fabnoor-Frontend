@@ -3,6 +3,7 @@ import { assets } from "../assets/assets";
 import { Link, NavLink } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { FaRegHeart } from "react-icons/fa";
+import ConfirmModal from "./ConfirmModal";
 
 function Navbar() {
   const [visible, setVisible] = useState(false);
@@ -13,6 +14,8 @@ function Navbar() {
     setToken,
     setCartItems,
   } = useContext(ShopContext);
+
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const logout = () => {
     navigate("/login");
@@ -91,20 +94,20 @@ function Navbar() {
         <ul className="flex justify-center gap-8 py-4 text-sm font-medium text-gray-700">
 
           {["Home", "Collection", "About", "Contact", "order", "profile"].map((item) => (
-              <NavLink
-                key={item}
-                to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
-                className={({ isActive }) =>
-                  `relative group ${isActive ? "text-rose-500" : ""}`
-                }
-              >
-                {item.toUpperCase()}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
-              </NavLink>
+            <NavLink
+              key={item}
+              to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
+              className={({ isActive }) =>
+                `relative group ${isActive ? "text-rose-500" : ""}`
+              }
+            >
+              {item.toUpperCase()}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
+            </NavLink>
           ))}
           <button
             className={`relative group`}
-            onClick={logout}
+            onClick={() => setShowLogoutModal(true)}
           >
             LOGOUT
             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
@@ -137,11 +140,11 @@ function Navbar() {
           <button
             onClick={() => {
               setVisible(false);
-              logout();
+              setShowLogoutModal(true);
             }}
             className="py-3 px-4 text-left rounded-lg hover:bg-pink-50 "
           >
-          LOGOUT
+            LOGOUT
           </button>
         </ul>
       </div>
@@ -153,6 +156,17 @@ function Navbar() {
           className="sm:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
         />
       )}
+
+      {/* LOGOUT CONFIRMATION MODAL */}
+      <ConfirmModal
+        open={showLogoutModal}
+        title="Logout"
+        message="Are you sure you want to logout?"
+        onConfirm={() => { logout(); setShowLogoutModal(false); }}
+        onCancel={() => setShowLogoutModal(false)}
+        confirmText="Yes, Logout"
+        cancelText="Stay Logged In"
+      />
 
       {/* MARQUEE */}
       <style>{`
