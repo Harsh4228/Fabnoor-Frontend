@@ -8,11 +8,12 @@ const Login = () => {
   const { token, setToken, navigate } = useContext(ShopContext);
 
   const [name, setName] = useState("");
-  const [mobile, setMobile] = useState(""); // ✅ new state
+  const [shopName, setShopName] = useState(""); // ✅ new state
+  const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
 
-  const [showPassword, setShowPassword] = useState(false); // ✅ show/hide password
+  const [showPassword, setShowPassword] = useState(false);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -31,7 +32,8 @@ const Login = () => {
           name,
           email,
           password,
-          mobile, // ✅ send mobile also
+          mobile,
+          shopName, // ✅ send shopName
         });
 
         if (res.data.success) {
@@ -89,6 +91,18 @@ const Login = () => {
           onChange={(e) => setName(e.target.value)}
           className="w-full px-3 py-2 border border-gray-800 rounded-md"
           placeholder="Name"
+          required
+        />
+      )}
+
+      {/* ✅ Shop Name Field */}
+      {currentState === "Sign Up" && (
+        <input
+          type="text"
+          value={shopName}
+          onChange={(e) => setShopName(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-800 rounded-md"
+          placeholder="Shop Name"
           required
         />
       )}

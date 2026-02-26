@@ -422,14 +422,11 @@ const Product = () => {
               <h2 className="text-lg font-bold text-[#0F1111] mb-4">Product details</h2>
 
               <div className="grid grid-cols-[140px_1fr] md:grid-cols-[160px_1fr] gap-y-2.5 text-sm mb-5">
-                <div className="font-bold text-[#0F1111]">Material composition</div>
+                <div className="font-bold text-[#0F1111]">Fabric</div>
                 <div className="text-[#0F1111]">{selectedVariant.fabric || "Rayon / Cotton"}</div>
 
                 <div className="font-bold text-[#0F1111]">Category</div>
                 <div className="text-[#0F1111] capitalize">{productData.category} &gt; {productData.subCategory}</div>
-
-                <div className="font-bold text-[#0F1111]">Variant Code</div>
-                <div className="text-[#0F1111]">{selectedVariant.code || "Standard"}</div>
               </div>
 
               <hr className="my-4 border-gray-200" />
@@ -597,27 +594,49 @@ const Product = () => {
         isPreviewOpen && (
           <div
             onClick={closePreview}
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center"
+            className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center"
           >
+            {showZoomHint && (
+              <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-[0_0_15px_rgba(236,72,153,0.5)] animate-pulse tracking-wide flex items-center gap-2">
+                ✨ Double tap or scroll to zoom
+              </div>
+            )}
+
             <div
               onClick={(e) => e.stopPropagation()}
-              onWheel={handleWheel}
+              onWheel={(e) => {
+                // handle zoom via scroll
+                if (e.ctrlKey || e.metaKey || zoom > 1 || e.deltaY) {
+                  e.preventDefault();
+
+                  // if zooming
+                  let newZoom = zoom - e.deltaY * 0.01;
+                  newZoom = Math.min(Math.max(1, newZoom), 5); // limit zoom from 1x to 5x
+
+                  setZoom(newZoom);
+                  if (newZoom === 1) {
+                    setPosition({ x: 0, y: 0 }); // reset position if zoomed way out
+                  }
+                } else {
+                  handleWheel(e);
+                }
+              }}
               onTouchStart={(e) => (touchStartX.current = e.touches?.[0]?.clientX)}
               onTouchEnd={(e) => {
                 const endX = e.changedTouches?.[0]?.clientX;
                 if (touchStartX.current == null || endX == null) return;
                 const diff = touchStartX.current - endX;
-                if (Math.abs(diff) > 40) {
+                if (Math.abs(diff) > 40 && zoom === 1) {
                   if (diff > 0) nextImage();
                   else prevImage();
                 }
                 touchStartX.current = null;
               }}
-              className="relative w-full max-w-5xl h-[85vh] overflow-hidden flex items-center justify-center"
+              className="relative w-full max-w-5xl h-[80vh] mt-10 overflow-hidden flex items-center justify-center group"
             >
               <button
                 onClick={closePreview}
-                className="absolute top-4 right-4 z-50 w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors shadow-lg"
+                className="absolute top-0 right-4 z-50 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors shadow-lg backdrop-blur-sm border border-white/20"
                 title="Close Preview"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
@@ -625,10 +644,28 @@ const Product = () => {
                 </svg>
               </button>
 
-              {showZoomHint && (
-                <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
-                  Double tap to zoom
-                </div>
+              {/* Prev/Next Buttons (Visible on hover on PC) */}
+              {(selectedVariant?.images?.length || 0) > 1 && (
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); prevImage(); setZoom(1); setPosition({ x: 0, y: 0 }); }}
+                    className={`absolute left-4 z-40 w-12 h-12 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm border border-white/20 md:opacity-0 md:group-hover:opacity-100 ${zoom > 1 ? 'hidden' : ''}`}
+                    aria-label="Previous image"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 mr-1">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); nextImage(); setZoom(1); setPosition({ x: 0, y: 0 }); }}
+                    className={`absolute right-4 z-40 w-12 h-12 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm border border-white/20 md:opacity-0 md:group-hover:opacity-100 ${zoom > 1 ? 'hidden' : ''}`}
+                    aria-label="Next image"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 ml-1">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </button>
+                </>
               )}
 
               <img
@@ -641,7 +678,7 @@ const Product = () => {
                 onTouchStart={startDrag}
                 onTouchMove={onDrag}
                 onTouchEnd={endDrag}
-                className="select-none max-w-full max-h-full object-contain"
+                className={`select-none max-w-full max-h-full object-contain ${zoom > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-in'}`}
                 style={{
                   transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
                   transition: isDragging ? "none" : "transform 0.2s ease",
