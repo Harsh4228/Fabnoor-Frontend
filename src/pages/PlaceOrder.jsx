@@ -42,7 +42,7 @@ const PlaceOrder = () => {
     city: "",
     state: "",
     pinCode: "",
-    country: "",
+    country: "India",
     phone: "",
   });
 
