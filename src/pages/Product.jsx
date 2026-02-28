@@ -598,7 +598,7 @@ const Product = () => {
           >
             {showZoomHint && (
               <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-[0_0_15px_rgba(236,72,153,0.5)] animate-pulse tracking-wide flex items-center gap-2">
-                ✨ Double tap or scroll to zoom
+                ✨ Double tap to Zoom
               </div>
             )}
 
