@@ -107,13 +107,13 @@ const Footer = () => {
             <ul className="flex flex-col gap-3 text-gray-600 text-sm">
               <li className="flex items-center gap-2">
                 <span className="text-rose-500">📞</span>
-                +91 9274703338
-                <span className="text-rose-500">📞</span>
-                +91 9274713338
+                <a href="tel:+919274703338" className="hover:text-rose-500 transition-colors">+91 9274703338</a>
+                <span className="text-rose-500 ml-2">📞</span>
+                <a href="tel:+919274713338" className="hover:text-rose-500 transition-colors">+91 9274713338</a>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-rose-500">✉️</span>
-                support@fabnoor.com
+                <a href="mailto:support@fabnoor.com" className="hover:text-rose-500 transition-colors">support@fabnoor.com</a>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-rose-500">📍</span>

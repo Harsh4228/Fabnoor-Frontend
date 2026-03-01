@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
@@ -45,6 +45,45 @@ const PlaceOrder = () => {
     country: "India",
     phone: "",
   });
+
+  // Fetch user profile and auto-populate address
+  useEffect(() => {
+    if (token) {
+      const fetchProfile = async () => {
+        try {
+          const res = await axios.get(`${backendUrl}/api/user/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.data.success) {
+            const user = res.data.user;
+
+            // Auto-populate form
+            if (user) {
+              const nameParts = user.name ? user.name.split(" ") : ["", ""];
+              const firstName = nameParts[0] || "";
+              const lastName = nameParts.slice(1).join(" ") || "";
+
+              setFormData((prev) => ({
+                ...prev,
+                firstName: prev.firstName || firstName,
+                lastName: prev.lastName || lastName,
+                email: prev.email || user.email || "",
+                phone: prev.phone || user.mobile || "",
+                street: prev.street || user.address?.street || "",
+                city: prev.city || user.address?.city || "",
+                state: prev.state || user.address?.state || "",
+                pinCode: prev.pinCode || user.address?.zipcode || "",
+                country: prev.country || user.address?.country || "India",
+              }));
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch user profile for auto-population", error);
+        }
+      };
+      fetchProfile();
+    }
+  }, [token, backendUrl]);
 
   const [errors, setErrors] = useState({});
 
@@ -336,10 +375,17 @@ const PlaceOrder = () => {
     } catch (error) {
       console.error("Order error:", error, error?.response?.data);
       const msg = error?.response?.data?.message || error.message || "Order failed";
+
       // If unauthorized, direct user to login
       if (error?.response?.status === 401) {
         alert('Your session has expired. Please login again.');
         navigate('/login');
+      } else if (error?.response?.status === 400 && msg.includes("Price mismatch")) {
+        // Handle backend price validation failure
+        // The admin updated the product price while the user was interacting with the cart
+        alert(msg);
+        // Force a reload so the frontend context refetches the latest products/prices from the DB
+        window.location.reload();
       } else {
         alert(msg);
       }

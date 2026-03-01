@@ -37,10 +37,15 @@ const Collection = () => {
     [products]
   );
 
-  const subCategories = useMemo(
-    () => [...new Set(products.map((p) => p.subCategory).filter(Boolean))],
-    [products]
-  );
+  const subCategories = useMemo(() => {
+    // If no parent category is selected, return empty or all?
+    // User requested: "When a parent category is selected, only its related subcategories should be displayed."
+    if (category.length === 0) return [];
+
+    // Filter products that match the selected categories, then extract their subCategories
+    const relevantProducts = products.filter(p => category.includes(p.category));
+    return [...new Set(relevantProducts.map((p) => p.subCategory).filter(Boolean))];
+  }, [products, category]);
 
   /* ✅ APPLY URL FILTER ON PAGE LOAD / URL CHANGE */
   useEffect(() => {
@@ -137,9 +142,8 @@ const Collection = () => {
                     setSortType(s.key);
                     setShowSort(false);
                   }}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 ${
-                    sortType === s.key ? "text-pink-500 font-medium" : ""
-                  }`}
+                  className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 ${sortType === s.key ? "text-pink-500 font-medium" : ""
+                    }`}
                 >
                   {s.label}
                 </button>
@@ -171,23 +175,29 @@ const Collection = () => {
             ))}
           </div>
 
-          <div className="border rounded-2xl p-5">
-            <h3 className="font-semibold mb-4">Sub Categories</h3>
-            {subCategories.map((s) => (
-              <label key={s} className="flex gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={subCategory.includes(s)}
-                  onChange={() =>
-                    setSubCategory((p) =>
-                      p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
-                    )
-                  }
-                />
-                {s}
-              </label>
-            ))}
-          </div>
+          {/* ONLY SHOW SUBCATEGORIES IF A PARENT CATEGORY IS SELECTED */}
+          {category.length > 0 && subCategories.length > 0 && (
+            <div className="border rounded-2xl p-5 mt-6">
+              <h3 className="font-semibold mb-4 text-gray-800">Sub Categories</h3>
+              <div className="space-y-2">
+                {subCategories.map((s) => (
+                  <label key={s} className="flex gap-2 text-sm text-gray-600 hover:text-rose-500 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      className="accent-rose-500 cursor-pointer"
+                      checked={subCategory.includes(s)}
+                      onChange={() =>
+                        setSubCategory((p) =>
+                          p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
+                        )
+                      }
+                    />
+                    {s}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* PRODUCTS */}
@@ -221,9 +231,8 @@ const Collection = () => {
                         setSortType(s.key);
                         setShowSort(false);
                       }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 ${
-                        sortType === s.key ? "text-pink-500 font-medium" : ""
-                      }`}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 ${sortType === s.key ? "text-pink-500 font-medium" : ""
+                        }`}
                     >
                       {s.label}
                     </button>
@@ -284,21 +293,29 @@ const Collection = () => {
               </label>
             ))}
 
-            <p className="font-medium mt-4 mb-2">Sub Categories</p>
-            {subCategories.map((s) => (
-              <label key={s} className="flex gap-2 text-sm mb-2">
-                <input
-                  type="checkbox"
-                  checked={subCategory.includes(s)}
-                  onChange={() =>
-                    setSubCategory((p) =>
-                      p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
-                    )
-                  }
-                />
-                {s}
-              </label>
-            ))}
+            {/* ONLY SHOW SUBCATEGORIES ON MOBILE IF PARENT SELECTED */}
+            {category.length > 0 && subCategories.length > 0 && (
+              <>
+                <p className="font-medium mt-6 mb-3 text-gray-800 border-t pt-4">Sub Categories</p>
+                <div className="space-y-2">
+                  {subCategories.map((s) => (
+                    <label key={s} className="flex gap-2 text-sm text-gray-600">
+                      <input
+                        type="checkbox"
+                        className="accent-pink-500"
+                        checked={subCategory.includes(s)}
+                        onChange={() =>
+                          setSubCategory((p) =>
+                            p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
+                          )
+                        }
+                      />
+                      {s}
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
 
             <button
               onClick={() => setShowFilter(false)}

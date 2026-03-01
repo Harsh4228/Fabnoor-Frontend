@@ -447,14 +447,24 @@ export const ShopContextProvider = ({ children }) => {
       return;
     }
 
+    // Optimistic Update
+    const previousWishlist = [...wishlist];
+    setWishlist((prev) => {
+      if (prev.some((item) => item.productId?._id === productId && item.color === color)) return prev;
+      return [...prev, { productId: { _id: productId }, color }];
+    });
+
     try {
       await axios.post(
         `${backendUrl}/api/wishlist/add`,
         { productId, color },
         authHeader
       );
+      // Fetch fresh data in the background
       getWishlist();
     } catch (err) {
+      // Revert optimistic update on failure
+      setWishlist(previousWishlist);
       toast.error(
         err?.response?.data?.message || err?.message || "Failed to add to wishlist"
       );
@@ -470,14 +480,23 @@ export const ShopContextProvider = ({ children }) => {
       return;
     }
 
+    // Optimistic Update
+    const previousWishlist = [...wishlist];
+    setWishlist((prev) =>
+      prev.filter((item) => !(item.productId?._id === productId && item.color === color))
+    );
+
     try {
       await axios.post(
         `${backendUrl}/api/wishlist/remove`,
         { productId, color },
         authHeader
       );
+      // Fetch fresh data in the background
       getWishlist();
     } catch (err) {
+      // Revert optimistic update on failure
+      setWishlist(previousWishlist);
       toast.error(
         err?.response?.data?.message ||
         err?.message ||

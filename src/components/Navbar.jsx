@@ -11,6 +11,7 @@ function Navbar() {
     setShowSearch,
     getCartItems,
     navigate,
+    token,
     setToken,
     setCartItems,
   } = useContext(ShopContext);
@@ -93,7 +94,7 @@ function Navbar() {
       <nav className="hidden sm:block border-b bg-gradient-to-b from-white to-pink-50/20">
         <ul className="flex justify-center gap-8 py-4 text-sm font-medium text-gray-700">
 
-          {["Home", "Collection", "About", "Contact", "order", "profile"].map((item) => (
+          {["Home", "Collection", "About", "Contact"].map((item) => (
             <NavLink
               key={item}
               to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
@@ -105,13 +106,39 @@ function Navbar() {
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
             </NavLink>
           ))}
-          <button
-            className={`relative group`}
-            onClick={() => setShowLogoutModal(true)}
-          >
-            LOGOUT
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
-          </button>
+
+          {token && ["order", "profile"].map((item) => (
+            <NavLink
+              key={item}
+              to={`/${item.toLowerCase()}`}
+              className={({ isActive }) =>
+                `relative group ${isActive ? "text-rose-500" : ""}`
+              }
+            >
+              {item.toUpperCase()}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
+            </NavLink>
+          ))}
+
+          {token ? (
+            <button
+              className={`relative group`}
+              onClick={() => setShowLogoutModal(true)}
+            >
+              LOGOUT
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
+            </button>
+          ) : (
+            <NavLink
+              to="/login"
+              className={({ isActive }) =>
+                `relative group ${isActive ? "text-rose-500" : ""}`
+              }
+            >
+              LOGIN
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-rose-500 transition-all group-hover:w-full" />
+            </NavLink>
+          )}
 
         </ul>
       </nav>
@@ -127,7 +154,7 @@ function Navbar() {
         </div>
 
         <ul className="flex flex-col p-5 space-y-1">
-          {["Home", "Collection", "About", "Contact", "order", "profile"].map((item) => (
+          {["Home", "Collection", "About", "Contact"].map((item) => (
             <NavLink
               key={item}
               to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
@@ -137,15 +164,37 @@ function Navbar() {
               {item.toUpperCase()}
             </NavLink>
           ))}
-          <button
-            onClick={() => {
-              setVisible(false);
-              setShowLogoutModal(true);
-            }}
-            className="py-3 px-4 text-left rounded-lg hover:bg-pink-50 "
-          >
-            LOGOUT
-          </button>
+
+          {token && ["order", "profile"].map((item) => (
+            <NavLink
+              key={item}
+              to={`/${item.toLowerCase()}`}
+              onClick={() => setVisible(false)}
+              className="py-3 px-4 rounded-lg hover:bg-pink-50"
+            >
+              {item.toUpperCase()}
+            </NavLink>
+          ))}
+
+          {token ? (
+            <button
+              onClick={() => {
+                setVisible(false);
+                setShowLogoutModal(true);
+              }}
+              className="py-3 px-4 text-left rounded-lg hover:bg-pink-50 "
+            >
+              LOGOUT
+            </button>
+          ) : (
+            <NavLink
+              to="/login"
+              onClick={() => setVisible(false)}
+              className="py-3 px-4 rounded-lg hover:bg-pink-50"
+            >
+              LOGIN
+            </NavLink>
+          )}
         </ul>
       </div>
 
