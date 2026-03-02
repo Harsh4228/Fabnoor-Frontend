@@ -3,25 +3,33 @@ import { ShopContext } from "../context/ShopContext";
 import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { getPerPiecePrice, formatNumber, getPackPrice } from "../utils/price";
+import axios from "axios";
 
 import PropTypes from 'prop-types';
 
 const RelatedProducts = ({ category, subCategory, currentProductId }) => {
-  const { products, setSearch, setShowSearch } = useContext(ShopContext);
   const [related, setRelated] = useState([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
-    if (products.length > 0) {
-      const filtered = products.filter(
-        (item) =>
-          item.category === category &&
-          item.subCategory === subCategory &&
-          item._id !== currentProductId
-      );
+    const fetchRelated = async () => {
+      try {
+        const { data } = await axios.get(`${backendUrl}/api/product/list`, {
+          params: { category, subCategory, limit: 6 }
+        });
+        if (data.success && data.products) {
+          const filtered = data.products.filter(item => item._id !== currentProductId);
+          setRelated(filtered.slice(0, 5));
+        }
+      } catch (err) {
+        console.error("Related fetch error", err);
+      }
+    };
 
-      setRelated(filtered.slice(0, 5));
+    if (category && subCategory) {
+      fetchRelated();
     }
-  }, [products, category, subCategory, currentProductId]);
+  }, [category, subCategory, currentProductId, backendUrl]);
 
   /* IMAGE FROM VARIANT */
   const getImage = (product) =>

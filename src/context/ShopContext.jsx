@@ -336,15 +336,38 @@ export const ShopContextProvider = ({ children }) => {
     return total;
   };
 
-  /* ================= LOAD PRODUCTS ================= */
-  const getProductsData = useCallback(async () => {
+  /* ================= ADD PRODUCTS TO CACHE ================= */
+  const addProductsToCache = useCallback((newProducts) => {
+    if (!newProducts || !newProducts.length) return;
+    setProducts((prev) => {
+      const map = new Map(prev.map(p => [p._id, p]));
+      newProducts.forEach(p => map.set(p._id, p));
+      return Array.from(map.values());
+    });
+  }, []);
+
+  /* ================= LOAD GUEST UNCACHED PRODUCTS ================= */
+  const loadGuestCartProducts = useCallback(async (currentCart) => {
     try {
-      const { data } = await axios.get(`${backendUrl}/api/product/list`);
-      if (data.success) setProducts(data.products);
+      const productIds = new Set();
+      for (const key in currentCart) {
+        if (currentCart[key].quantity > 0) {
+          const pid = key.includes("::") ? key.split("::")[0] : key;
+          if (pid) productIds.add(pid);
+        }
+      }
+
+      const idsToFetch = Array.from(productIds);
+      if (idsToFetch.length > 0) {
+        const { data } = await axios.post(`${backendUrl}/api/product/by-ids`, { ids: idsToFetch });
+        if (data.success && data.products) {
+          addProductsToCache(data.products);
+        }
+      }
     } catch (err) {
-      console.log("Products load error:", err);
+      console.log("Guest products load error:", err);
     }
-  }, [backendUrl]);
+  }, [backendUrl, addProductsToCache]);
 
   /* ================= GET USER CART ================= */
   const getUserCart = useCallback(async () => {
@@ -358,6 +381,10 @@ export const ShopContextProvider = ({ children }) => {
       );
 
       if (data.success) {
+        if (data.cartProducts) {
+          addProductsToCache(data.cartProducts);
+        }
+
         const serverCart = normalizeCart(data.cartData || {});
         const serverHasItems = Object.keys(serverCart).length > 0;
         const localHasItems = Object.keys(cartItems || {}).length > 0;
@@ -370,7 +397,7 @@ export const ShopContextProvider = ({ children }) => {
     } catch (err) {
       console.log("User cart load error:", err);
     }
-  }, [backendUrl, authHeader, token]);
+  }, [backendUrl, authHeader, token, cartItems, addProductsToCache]);
 
   /* ================= MERGE GUEST CART TO DB (ON LOGIN) - BULK ================= */
   const mergeGuestCartToDB = useCallback(async () => {
@@ -386,6 +413,10 @@ export const ShopContextProvider = ({ children }) => {
       );
 
       if (data.success) {
+        if (data.cartProducts) {
+          addProductsToCache(data.cartProducts);
+        }
+
         const serverCart = normalizeCart(data.cartData || {});
         const serverHasItems = Object.keys(serverCart).length > 0;
         if (serverHasItems) {
@@ -403,7 +434,7 @@ export const ShopContextProvider = ({ children }) => {
     } catch (err) {
       console.error("Cart merge failed:", err);
     }
-  }, [cartItems, token, backendUrl, authHeader]);
+  }, [cartItems, token, backendUrl, authHeader, addProductsToCache]);
 
   /* ================= WISHLIST (DB) ================= */
   const getWishlist = useCallback(async () => {
@@ -414,12 +445,17 @@ export const ShopContextProvider = ({ children }) => {
 
     try {
       const res = await axios.get(`${backendUrl}/api/wishlist`, authHeader);
-      setWishlist(res.data.wishlist || []);
+      const fetchedWishlist = res.data.wishlist || [];
+      setWishlist(fetchedWishlist);
+
+      // Extract populated products and add to cache
+      const wishlistProducts = fetchedWishlist.map(w => w.productId).filter(Boolean);
+      addProductsToCache(wishlistProducts);
     } catch (error) {
       console.error("Wishlist fetch failed", error);
       setWishlist([]);
     }
-  }, [backendUrl, authHeader, token]);
+  }, [backendUrl, authHeader, token, addProductsToCache]);
 
   /* ================= GUEST WISHLIST HELPERS ================= */
   const addGuestWishlist = (productId, color = "") => {
@@ -451,6 +487,7 @@ export const ShopContextProvider = ({ children }) => {
     const previousWishlist = [...wishlist];
     setWishlist((prev) => {
       if (prev.some((item) => item.productId?._id === productId && item.color === color)) return prev;
+      // Optimistically we push just ID so it's not fully populated, but background fetch fixes it
       return [...prev, { productId: { _id: productId }, color }];
     });
 
@@ -548,8 +585,17 @@ export const ShopContextProvider = ({ children }) => {
 
   /* ================= LOAD ON START ================= */
   useEffect(() => {
-    getProductsData();
-  }, [getProductsData]);
+    if (!token) {
+      loadGuestCartProducts(cartItems);
+
+      const hwids = guestWishlist.map(w => w.productId);
+      if (hwids.length > 0) {
+        axios.post(`${backendUrl}/api/product/by-ids`, { ids: hwids })
+          .then(res => { if (res.data.success) addProductsToCache(res.data.products); })
+          .catch(() => { });
+      }
+    }
+  }, [token]);
 
   // ✅ If token exists, load cart from backend. Otherwise keep local cart (localStorage).
   useEffect(() => {
@@ -597,6 +643,7 @@ export const ShopContextProvider = ({ children }) => {
         products,
         currency,
         delivery_fee,
+        addProductsToCache,
 
         search,
         setSearch,

@@ -13,16 +13,23 @@ const Order = () => {
   const [orderData, setOrderData] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  // Pagination state
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const limit = 10;
+
   // Review modal state
   const [reviewTarget, setReviewTarget] = useState(null); // { item, orderId }
 
-  const loadOrderData = useCallback(async () => {
+  const fetchOrders = useCallback(async (isAppend = false, currentPage = 1) => {
     try {
       if (!token) return;
+      setLoading(true);
 
       const response = await axios.post(
         `${backendUrl}/api/order/userorders`,
-        {},
+        { page: currentPage, limit },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -31,16 +38,32 @@ const Order = () => {
       );
 
       if (response.data.success) {
-        setOrderData(response.data.orders || []);
+        if (isAppend) {
+          setOrderData((prev) => [...prev, ...response.data.orders]);
+        } else {
+          setOrderData(response.data.orders || []);
+        }
+        setTotalCount(response.data.totalCount || 0);
       }
     } catch (error) {
       console.error("Load orders error:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [token, backendUrl]);
+  }, [token, backendUrl, limit]);
 
   useEffect(() => {
-    loadOrderData();
-  }, [loadOrderData]);
+    fetchOrders(page > 1, page);
+  }, [page, token, fetchOrders]);
+
+  // Expose for review success reload
+  const reloadFirstPage = () => {
+    if (page === 1) {
+      fetchOrders(false, 1);
+    } else {
+      setPage(1); // will trigger useEffect
+    }
+  };
 
   // Build the same dedupe key as the backend
   const getReviewKey = (item) =>
@@ -115,10 +138,10 @@ const Order = () => {
                   <div className="flex items-center gap-2">
                     <span
                       className={`w-2 h-2 rounded-full ${order.status === "Delivered"
-                          ? "bg-green-500"
-                          : order.status === "Cancelled"
-                            ? "bg-red-500"
-                            : "bg-blue-500"
+                        ? "bg-green-500"
+                        : order.status === "Cancelled"
+                          ? "bg-red-500"
+                          : "bg-blue-500"
                         }`}
                     />
                     <p className="text-sm md:text-base">{order.status}</p>
@@ -156,6 +179,33 @@ const Order = () => {
           </div>
         ))}
       </div>
+
+      {/* LOAD MORE BUTTON */}
+      {orderData.length > 0 && orderData.length < totalCount && (
+        <div className="flex justify-center mt-10 mb-10">
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={loading}
+            className="px-8 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-full shadow-sm hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
+                Loading...
+              </>
+            ) : (
+              "Load More"
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* END OF LIST */}
+      {!loading && orderData.length > 0 && orderData.length >= totalCount && (
+        <div className="text-center mt-10 mb-10 text-gray-400 text-sm">
+          You've reached the end of your orders.
+        </div>
+      )}
 
       {/* ================= TRACK ORDER MODAL ================= */}
       {selectedOrder && (
@@ -235,7 +285,7 @@ const Order = () => {
           item={reviewTarget.item}
           orderId={reviewTarget.orderId}
           onClose={() => setReviewTarget(null)}
-          onSuccess={loadOrderData}
+          onSuccess={reloadFirstPage}
         />
       )}
     </div>

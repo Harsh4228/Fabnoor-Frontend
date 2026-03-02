@@ -1,19 +1,28 @@
-import { useContext, useEffect, useState } from "react";
-import { ShopContext } from "../context/ShopContext";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { getPerPiecePrice, formatNumber, getPackPrice } from "../utils/price";
+import axios from "axios";
 
 const LatestCollection = () => {
-  const { products } = useContext(ShopContext);
   const [latestProducts, setLatestProducts] = useState([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
-    if (products?.length) {
-      const shuffled = [...products].sort(() => Math.random() - 0.5);
-      setLatestProducts(shuffled.slice(0, 6));
-    }
-  }, [products]);
+    const fetchLatest = async () => {
+      try {
+        const { data } = await axios.get(`${backendUrl}/api/product/list`, {
+          params: { limit: 6 } // Backend defaults to sorting by date: -1
+        });
+        if (data.success && data.products) {
+          setLatestProducts(data.products);
+        }
+      } catch (err) {
+        console.error("Latest fetch error", err);
+      }
+    };
+    fetchLatest();
+  }, [backendUrl]);
 
   const getImage = (p) =>
     p?.variants?.[0]?.images?.[0] || assets.placeholder_image;
@@ -24,12 +33,12 @@ const LatestCollection = () => {
       {/* Title Section */}
       <div className="text-center pb-8 md:pb-12 max-w-3xl mx-auto px-4">
         <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="h-px w-8 md:w-12 bg-gradient-to-r from-transparent to-rose-300" />
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-gray-900">
-              LATEST <span className="text-rose-500">COLLECTION</span>
-            </h2>
-            <div className="h-px w-8 md:w-12 bg-gradient-to-l from-transparent to-rose-300" />
-          </div>
+          <div className="h-px w-8 md:w-12 bg-gradient-to-r from-transparent to-rose-300" />
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-gray-900">
+            LATEST <span className="text-rose-500">COLLECTION</span>
+          </h2>
+          <div className="h-px w-8 md:w-12 bg-gradient-to-l from-transparent to-rose-300" />
+        </div>
         <p className="mt-3 text-sm md:text-base text-gray-600 max-w-xl mx-auto">
           Discover the latest trends, fresh styles, and exclusive picks designed just for you
         </p>

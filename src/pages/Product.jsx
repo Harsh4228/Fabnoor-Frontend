@@ -2,12 +2,12 @@
 import { useParams } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
-import RelatedProducts from "../components/Relatedproducts";
+import RelatedProducts from "../components/RelatedProducts";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
-import toast from "react-hot-toast";
-import { formatNumber } from "../utils/price";
-import SetInfo from "../components/SetInfo";
+import { toast } from "react-toastify";
+import { getPerPiecePrice, formatNumber, getPackPrice } from "../utils/price";
 import axios from "axios";
+import SetInfo from "../components/SetInfo";
 
 const SIZE_ORDER = ["S", "M", "L", "XL", "XXL", "XXXL", "4XL", "5XL", "6XL", "7XL", "Free Size"];
 const sortSizes = (sizes) => [...(sizes || [])].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b));
@@ -50,16 +50,36 @@ const Product = () => {
   const [showZoomHint, setShowZoomHint] = useState(false);
 
   /* ================= LOAD PRODUCT ================= */
-  useEffect(() => {
-    const product = products.find((p) => p._id === productId);
+  const { addProductsToCache } = useContext(ShopContext);
 
-    if (product && product.variants?.length) {
-      setProductData(product);
-      setSelectedVariant(product.variants[0]);
-      setSelectedImageIndex(0);
-      setSelectedImage(product.variants[0].images?.[0] || "");
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const { data } = await axios.get(`${backendUrl}/api/product/${productId}`);
+        if (data.success && data.product) {
+          const product = data.product;
+
+          if (product && product.variants?.length) {
+            setProductData(product);
+            setSelectedVariant(product.variants[0]);
+            setSelectedImageIndex(0);
+            setSelectedImage(product.variants[0].images?.[0] || "");
+
+            // Add to context cache so the cart has access to its metadata
+            if (addProductsToCache) {
+              addProductsToCache([product]);
+            }
+          }
+        }
+      } catch (err) {
+        toast.error("Failed to load product details");
+      }
+    };
+
+    if (productId) {
+      fetchProduct();
     }
-  }, [productId, products]);
+  }, [productId, backendUrl, addProductsToCache]);
 
   /* ================= LOAD REVIEWS ================= */
   useEffect(() => {
