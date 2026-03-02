@@ -3,7 +3,7 @@ import Reels from "../components/Reels";
 import CategoryShowcase from "../components/CategoryShowcase";
 import LatestCollection from "../components/LatestCollection";
 import BestSeller from "../components/BestSeller";
-import Ourpolicy from "../components/Ourpolicy";
+import OurPolicy from "../components/OurPolicy";
 import Newsletter from "../components/Newsletter";
 
 const Home = () => {
@@ -14,7 +14,7 @@ const Home = () => {
       <Reels />
       <LatestCollection />
       <BestSeller />
-      <Ourpolicy />
+      <OurPolicy />
       <Newsletter />
     </div>
   );
