@@ -479,7 +479,6 @@ export const ShopContextProvider = ({ children }) => {
     // ✅ if user not logged in => store in guest wishlist
     if (!token) {
       addGuestWishlist(productId, color);
-      toast.success("Added to wishlist ❤️ (saved locally)");
       return;
     }
 
@@ -513,7 +512,6 @@ export const ShopContextProvider = ({ children }) => {
     // ✅ if user not logged in => remove from guest wishlist
     if (!token) {
       removeGuestWishlist(productId, color);
-      toast.success("Removed from wishlist");
       return;
     }
 

@@ -176,7 +176,7 @@ const Product = () => {
     // &#10003; IMPORTANT: send variant info also
     addToCart(productData._id, selectedVariant.color, selectedVariant.fabric, selectedVariant.code);
 
-    toast.success("Pack added to cart ðŸ›’");
+    toast.success("Pack added to cart!");
   };
 
   const handleBuyNow = async () => {
@@ -199,7 +199,7 @@ const Product = () => {
       toast.success("Removed from wishlist");
     } else {
       addToWishlist(productData._id, selectedVariant.color);
-      toast.success("Added to wishlist â¤ï¸");
+      toast.success("Added to wishlist!");
     }
   };
 

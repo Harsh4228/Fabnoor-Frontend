@@ -8,12 +8,15 @@ import SetInfo from "../components/SetInfo";
 import { toast } from "react-toastify";
 
 const Cart = () => {
-  const { products, cartItems, currency, updateQuantity, navigate } =
+  const { products, cartItems, currency, updateQuantity, navigate, token } =
     useContext(ShopContext);
 
+  // ✅ Login guard — redirect to /login if not authenticated
+  useEffect(() => {
+    if (!token) navigate("/login");
+  }, [token, navigate]);
 
   const [cartData, setCartData] = useState([]);
-  const prevCartDataRef = useRef([]);
 
   /* ================= BUILD CART DATA (WHOLESALE ONLY) ================= */
   useEffect(() => {
@@ -46,28 +49,6 @@ const Cart = () => {
     setCartData(temp);
   }, [cartItems]);
 
-  /* ================= POPUP ON ADD ITEM ================= */
-  useEffect(() => {
-    const prev = prevCartDataRef.current;
-    const current = cartData;
-
-    if (prev.length === 0 && current.length === 0) {
-      prevCartDataRef.current = current;
-      return;
-    }
-
-    const getTotalQty = (arr) =>
-      arr.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-
-    const prevQty = getTotalQty(prev);
-    const currentQty = getTotalQty(current);
-
-    if (currentQty > prevQty) {
-      toast.success("Item added successfully 🛒", { autoClose: 1200 });
-    }
-
-    prevCartDataRef.current = current;
-  }, [cartData]);
 
   /* ================= GET WHOLESALE VARIANT ================= */
   const getWholesaleVariant = (product, color, type, code) => {
