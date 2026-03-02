@@ -1,11 +1,32 @@
-import { useContext, useMemo } from "react";
-import { ShopContext } from "../context/ShopContext";
+import { useMemo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
+import axios from "axios";
 
 const CategoryShowcase = () => {
-  const { products } = useContext(ShopContext);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // Fetch a limited amount of products to extract categories
+        const { data } = await axios.get(`${backendUrl}/api/product/list`, {
+          params: { limit: 50 }
+        });
+        if (data.success && data.products) {
+          setProducts(data.products);
+        }
+      } catch (err) {
+        console.error("Category fetch error", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [backendUrl]);
 
   const categories = useMemo(() => {
     const map = {};
@@ -18,6 +39,8 @@ const CategoryShowcase = () => {
     });
     return Object.values(map);
   }, [products]);
+
+  if (loading) return null;
 
   return (
     <section className="my-10 md:my-12 py-6 md:py-8 bg-gradient-to-b from-pink-50/30 to-white">
