@@ -166,7 +166,12 @@ export const ShopContextProvider = ({ children }) => {
     }
   });
 
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cachedProducts");
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  });
   const [token, setToken] = useState(localStorage.getItem("token") || "");
 
   // ✅ wishlist in DB (for logged in users)
@@ -342,7 +347,10 @@ export const ShopContextProvider = ({ children }) => {
     setProducts((prev) => {
       const map = new Map(prev.map(p => [p._id, p]));
       newProducts.forEach(p => map.set(p._id, p));
-      return Array.from(map.values());
+      const merged = Array.from(map.values());
+      // Persist to localStorage so cart products are available instantly on next load
+      try { localStorage.setItem("cachedProducts", JSON.stringify(merged)); } catch { }
+      return merged;
     });
   }, []);
 
@@ -387,17 +395,23 @@ export const ShopContextProvider = ({ children }) => {
 
         const serverCart = normalizeCart(data.cartData || {});
         const serverHasItems = Object.keys(serverCart).length > 0;
-        const localHasItems = Object.keys(cartItems || {}).length > 0;
 
-        // Avoid overwriting a non-empty local guest cart with an empty server cart
-        if (serverHasItems || !localHasItems) {
-          setCartItems(serverCart);
-        }
+        // Use functional form to avoid cartItems in dependency array (prevents infinite loop)
+        setCartItems((prev) => {
+          const localHasItems = Object.keys(prev || {}).length > 0;
+          // Avoid overwriting a non-empty local guest cart with an empty server cart
+          if (serverHasItems || !localHasItems) {
+            return serverCart;
+          }
+          return prev;
+        });
       }
     } catch (err) {
       console.log("User cart load error:", err);
     }
-  }, [backendUrl, authHeader, token, cartItems, addProductsToCache]);
+    // ✅ cartItems intentionally removed from deps — using functional setCartItems instead
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backendUrl, authHeader, token, addProductsToCache]);
 
   /* ================= MERGE GUEST CART TO DB (ON LOGIN) - BULK ================= */
   const mergeGuestCartToDB = useCallback(async () => {
@@ -618,6 +632,9 @@ export const ShopContextProvider = ({ children }) => {
       // clear local cart on explicit logout
       setCartItems({});
       localStorage.removeItem("cartItems");
+      // clear cached products on logout so stale data doesn't persist across accounts
+      localStorage.removeItem("cachedProducts");
+      setProducts([]);
       // clear wishlist from memory (keep guestWishlist local)
       setWishlist([]);
     }
