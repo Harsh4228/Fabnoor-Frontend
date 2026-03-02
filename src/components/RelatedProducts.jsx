@@ -33,7 +33,7 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
 
   /* IMAGE FROM VARIANT */
   const getImage = (product) =>
-    product?.variants?.[0]?.images?.[0] || assets.placeholder_image;
+    product?.variants?.[0]?.images?.[0] || assets.logo;
 
 
 

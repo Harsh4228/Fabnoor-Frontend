@@ -34,7 +34,7 @@ const CategoryShowcase = () => {
       if (!p.category || map[p.category]) return;
       map[p.category] = {
         name: p.category,
-        image: p?.variants?.[0]?.images?.[0] || assets.placeholder_image,
+        image: p?.variants?.[0]?.images?.[0] || assets.logo,
       };
     });
     return Object.values(map);
