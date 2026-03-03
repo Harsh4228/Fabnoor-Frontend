@@ -42,11 +42,16 @@ const Contact = () => {
                 </svg>
                 Our Store
               </p>
-              <p className="text-gray-600 leading-relaxed">
-                841239, PuneGam, Surat
-                <br />
-                Gujarat, India
-              </p>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Maruti+Fashion+9-Balaji+Society,+Maruti+Chowk,+Hirabaugh,+Surat,+Gujarat+395006,+India"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-600 leading-relaxed hover:text-pink-500 transition-colors"
+              >
+                Maruti Fashion, 9 Balaji Society,<br />
+                Maruti Chowk, Hirabaugh,<br />
+                Surat, Gujarat 395006, India
+              </a>
             </div>
 
             {/* CONTACT INFO */}
@@ -67,11 +72,24 @@ const Contact = () => {
                 </svg>
                 Contact Information
               </p>
-              <p className="text-gray-600">
-                Tel: (+91) 9274703338 / +91 9274713338
-                <br />
-                E-mail: support@fabnoor.com
-              </p>
+              <div className="flex flex-col gap-3 text-gray-600">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-rose-500">📞</span>
+                  <a href="tel:+919274703338" className="hover:text-pink-500 transition-colors font-medium">
+                    +91 9274703338
+                  </a>
+                  <span className="text-rose-500">📞</span>
+                  <a href="tel:+919274713338" className="hover:text-pink-500 transition-colors font-medium">
+                    +91 9274713338
+                  </a>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-rose-500">✉️</span>
+                  <a href="mailto:support@fabnoor.com" className="hover:text-pink-500 transition-colors font-medium">
+                    support@fabnoor.com
+                  </a>
+                </div>
+              </div>
             </div>
 
             {/* CAREER */}
