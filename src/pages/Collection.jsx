@@ -178,48 +178,66 @@ const Collection = () => {
       <div className="flex gap-8">
         {/* DESKTOP FILTERS */}
         <div className="hidden sm:block w-64 min-w-[256px]">
-          <div className="border rounded-2xl p-5 mb-6">
-            <h3 className="font-semibold mb-4">Categories</h3>
-            {allCategories.map((c) => (
-              <label key={c} className="flex gap-2 text-sm mb-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="accent-pink-500"
-                  checked={category.includes(c)}
-                  onChange={() =>
-                    setCategory((p) =>
-                      p.includes(c) ? p.filter((x) => x !== c) : [...p, c]
-                    )
-                  }
-                />
-                {c}
-              </label>
-            ))}
-          </div>
+          <div className="border rounded-2xl p-6 bg-white shadow-sm sticky top-24">
+            <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-pink-500 rounded-full"></span>
+              Filter By
+            </h3>
 
-          {/* ONLY SHOW SUBCATEGORIES IF A PARENT CATEGORY IS SELECTED */}
-          {category.length > 0 && displaySubCategories.length > 0 && (
-            <div className="border rounded-2xl p-5 mt-6">
-              <h3 className="font-semibold mb-4 text-gray-800">Sub Categories</h3>
-              <div className="space-y-2">
-                {displaySubCategories.map((s) => (
-                  <label key={s} className="flex gap-2 text-sm text-gray-600 hover:text-rose-500 cursor-pointer transition-colors">
-                    <input
-                      type="checkbox"
-                      className="accent-rose-500 cursor-pointer"
-                      checked={subCategory.includes(s)}
-                      onChange={() =>
-                        setSubCategory((p) =>
-                          p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
-                        )
-                      }
-                    />
-                    {s}
-                  </label>
-                ))}
-              </div>
+            {/* HIERARCHICAL CATEGORY LIST */}
+            <div className="space-y-6">
+              {allCategories.map((cat) => {
+                const subs = subCategoriesMap[cat] || [];
+                const isSelected = category.includes(cat);
+
+                return (
+                  <div key={cat} className="group">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="flex items-center gap-3 text-sm font-semibold text-gray-800 cursor-pointer group-hover:text-pink-500 transition-colors">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 accent-pink-500 rounded-md"
+                          checked={isSelected}
+                          onChange={() =>
+                            setCategory((p) =>
+                              p.includes(cat) ? p.filter((x) => x !== cat) : [...p, cat]
+                            )
+                          }
+                        />
+                        <span className="capitalize">{cat}</span>
+                      </label>
+                      {subs.length > 0 && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${isSelected ? "bg-pink-100 text-pink-600" : "bg-gray-100 text-gray-500"}`}>
+                          {subs.length}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* SUB-CATEGORIES NESTED UNDERNEATH */}
+                    {isSelected && subs.length > 0 && (
+                      <div className="ml-7 mt-2 space-y-2 border-l-2 border-pink-50 pl-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                        {subs.map((s) => (
+                          <label key={s} className="flex items-center gap-3 text-xs text-gray-600 hover:text-pink-500 cursor-pointer transition-all">
+                            <input
+                              type="checkbox"
+                              className="w-3.5 h-3.5 accent-pink-500 rounded"
+                              checked={subCategory.includes(s)}
+                              onChange={() =>
+                                setSubCategory((p) =>
+                                  p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
+                                )
+                              }
+                            />
+                            <span className="capitalize">{s}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
         </div>
 
         {/* PRODUCTS */}
@@ -332,48 +350,60 @@ const Collection = () => {
       {showFilter && (
         <div className="fixed inset-0 bg-black/40 z-50 flex">
           <div className="bg-white w-80 h-full p-5 overflow-y-auto">
-            <h3 className="font-semibold mb-4 text-xl">Filters</h3>
+            <p className="font-bold mb-6 text-xl text-gray-900">Filters</p>
 
-            <p className="font-medium mb-3 mt-5">Categories</p>
-            {allCategories.map((c) => (
-              <label key={c} className="flex items-center gap-3 text-sm mb-3">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 accent-pink-500"
-                  checked={category.includes(c)}
-                  onChange={() =>
-                    setCategory((p) =>
-                      p.includes(c) ? p.filter((x) => x !== c) : [...p, c]
-                    )
-                  }
-                />
-                {c}
-              </label>
-            ))}
+            <div className="space-y-6">
+              {allCategories.map((cat) => {
+                const subs = subCategoriesMap[cat] || [];
+                const isSelected = category.includes(cat);
 
-            {/* ONLY SHOW SUBCATEGORIES ON MOBILE IF PARENT SELECTED */}
-            {category.length > 0 && displaySubCategories.length > 0 && (
-              <>
-                <p className="font-medium mt-8 mb-4 text-gray-800 border-t pt-5">Sub Categories</p>
-                <div className="space-y-3">
-                  {displaySubCategories.map((s) => (
-                    <label key={s} className="flex items-center gap-3 text-sm text-gray-600">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 accent-pink-500"
-                        checked={subCategory.includes(s)}
-                        onChange={() =>
-                          setSubCategory((p) =>
-                            p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
-                          )
-                        }
-                      />
-                      {s}
-                    </label>
-                  ))}
-                </div>
-              </>
-            )}
+                return (
+                  <div key={cat} className="border-b border-gray-100 pb-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="flex items-center gap-4 text-base font-semibold text-gray-800">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 accent-pink-500 rounded-md"
+                          checked={isSelected}
+                          onChange={() =>
+                            setCategory((p) =>
+                              p.includes(cat) ? p.filter((x) => x !== cat) : [...p, cat]
+                            )
+                          }
+                        />
+                        <span className="capitalize">{cat}</span>
+                      </label>
+                      {subs.length > 0 && (
+                        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
+                          {subs.length}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* MOBILE NESTED SUBS */}
+                    {isSelected && subs.length > 0 && (
+                      <div className="ml-9 space-y-4 pt-2">
+                        {subs.map((s) => (
+                          <label key={s} className="flex items-center gap-4 text-sm text-gray-600">
+                            <input
+                              type="checkbox"
+                              className="w-4 h-4 accent-pink-500 rounded"
+                              checked={subCategory.includes(s)}
+                              onChange={() =>
+                                setSubCategory((p) =>
+                                  p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
+                                )
+                              }
+                            />
+                            <span className="capitalize">{s}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
 
             <button
               onClick={() => setShowFilter(false)}

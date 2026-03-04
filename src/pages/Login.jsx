@@ -47,7 +47,7 @@ const Login = () => {
         }
       } else if (currentState === "Forgot Password") {
         const res = await axios.post(`${backendUrl}/api/user/request-reset-otp`, {
-          email,
+          mobile,
         });
 
         if (res.data.success) {
@@ -58,7 +58,7 @@ const Login = () => {
         }
       } else if (currentState === "Reset Password") {
         const res = await axios.post(`${backendUrl}/api/user/reset-password`, {
-          email,
+          mobile,
           otp,
           newPassword: password,
         });
@@ -138,7 +138,7 @@ const Login = () => {
       )}
 
       {/* ✅ Mobile Field */}
-      {currentState === "Sign Up" && (
+      {(currentState === "Sign Up" || currentState === "Forgot Password") && (
         <input
           type="tel"
           value={mobile}
@@ -150,7 +150,7 @@ const Login = () => {
       )}
 
       {/* Email */}
-      {(currentState === "Login" || currentState === "Sign Up" || currentState === "Forgot Password") && (
+      {(currentState === "Login" || currentState === "Sign Up") && (
         <input
           type="email"
           value={email}
@@ -161,14 +161,14 @@ const Login = () => {
         />
       )}
 
-      {/* Email Read-only for Reset Password */}
+      {/* Mobile Read-only for Reset Password */}
       {currentState === "Reset Password" && (
         <input
-          type="email"
-          value={email}
+          type="tel"
+          value={mobile}
           disabled
           className="w-full px-3 py-2 border border-gray-300 bg-gray-100 text-gray-500 rounded-md"
-          placeholder="E-mail"
+          placeholder="Mobile Number"
         />
       )}
 

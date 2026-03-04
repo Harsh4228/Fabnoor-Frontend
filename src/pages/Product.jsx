@@ -203,6 +203,11 @@ const Product = () => {
     }
   };
 
+  const handleWhatsAppOrder = () => {
+    addToCart(productData._id, selectedVariant.color, selectedVariant.fabric || selectedVariant.type, selectedVariant.code);
+    navigate("/place-order");
+  };
+
   /* ================= IMAGE ZOOM ================= */
   const handleDoubleClick = () => {
     if (zoom === 1) {
@@ -425,6 +430,12 @@ const Product = () => {
                     }`}
                 >
                   BUY NOW
+                </button>
+                <button
+                  onClick={handleWhatsAppOrder}
+                  className="w-full py-2.5 rounded-full font-semibold transition shadow-sm border-2 border-[#25D366] text-[#25D366] hover:bg-[#25D366]/5 flex items-center justify-center gap-2"
+                >
+                  ORDER ON WHATSAPP
                 </button>
               </div>
               <div className="mt-4 text-sm text-[#565959] flex items-center gap-2 justify-center font-medium">
