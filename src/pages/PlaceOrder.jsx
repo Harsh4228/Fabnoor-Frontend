@@ -629,17 +629,19 @@ const PlaceOrder = () => {
                 <div className="space-y-3">
                   <button
                     type="button"
-                    onClick={() => setMethod("razorpay")}
-                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${method === "razorpay"
-                      ? "border-pink-500 bg-pink-50"
-                      : "border-gray-200 hover:border-pink-300"
-                      }`}
+                    onClick={() => {
+                      toast.error("Razorpay is not available for wholesale users. Please choose WhatsApp.", { autoClose: 3000 });
+                      // Intentionally NOT setting method to "razorpay"
+                    }}
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 bg-gray-50 opacity-60 cursor-not-allowed border-gray-200`}
+                    title="Not available for wholesale users"
                   >
                     <img
-                      className="h-6"
+                      className="h-6 opacity-60 grayscale"
                       src={assets.razorpay_logo}
                       alt="Razorpay"
                     />
+                    <span className="text-gray-500 font-medium text-sm">Unavailable</span>
                   </button>
 
                   <button
