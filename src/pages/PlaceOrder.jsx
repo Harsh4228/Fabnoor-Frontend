@@ -337,7 +337,7 @@ const PlaceOrder = () => {
           localStorage.removeItem("cartItems");
 
           // Open WhatsApp with a confirmation message to seller
-          const adminPhone = import.meta.env.VITE_WHATSAPP_NUMBER || "919054350111";
+          const adminPhone = (import.meta.env.VITE_WHATSAPP_NUMBER || "919979624404").replace(/^\+/, "");
           const orderId = res.data.order?._id || res.data.order?.orderNumber || "";
           const msg = `Hello Fabnoor! I just placed a new order via WhatsApp.\n\n*Order ID:* ${orderId}\n*Total:* ₹${orderData.amount}\n*Items:* ${items.length} item(s)\n\nPlease confirm my order. Thank you!`;
           window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, "_blank");
@@ -646,8 +646,8 @@ const PlaceOrder = () => {
                     type="button"
                     onClick={() => setMethod("whatsapp")}
                     className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold ${method === "whatsapp"
-                        ? "border-[#25D366] bg-green-50 text-[#128C7E]"
-                        : "border-gray-200 text-gray-700 hover:border-green-400"
+                      ? "border-[#25D366] bg-green-50 text-[#128C7E]"
+                      : "border-gray-200 text-gray-700 hover:border-green-400"
                       }`}
                   >
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
