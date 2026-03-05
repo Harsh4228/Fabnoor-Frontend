@@ -68,6 +68,9 @@ const Login = () => {
         });
 
         if (res.data.success) {
+          // Flag this session as a brand new registration so ShopContext knows NOT to merge old guest wishlists
+          localStorage.setItem("isNewRegistration", "true");
+
           setToken(res.data.token);
           localStorage.setItem("token", res.data.token);
           toast.success("Account created successfully");

@@ -621,10 +621,24 @@ export const ShopContextProvider = ({ children }) => {
     const prev = prevTokenRef.current;
     // login: prev falsy -> now truthy
     if (!prev && token) {
-      // merge guest cart into DB
-      mergeGuestCartToDB();
-      // also merge guest wishlist
-      mergeGuestWishlistToDB();
+      const isNewRegistration = localStorage.getItem("isNewRegistration");
+
+      if (isNewRegistration) {
+        // If it's a completely new account, they should NOT inherit whatever items 
+        // the previous guest left in the browser. Clear guest data.
+        setGuestWishlist([]);
+        localStorage.removeItem("guestWishlist");
+
+        setCartItems({});
+        localStorage.removeItem("cartItems");
+
+        // Remove the flag so future logins behave normally
+        localStorage.removeItem("isNewRegistration");
+      } else {
+        // regular login => merge guest cart and wishlist into DB
+        mergeGuestCartToDB();
+        mergeGuestWishlistToDB();
+      }
     }
 
     // logout: prev truthy -> now falsy
