@@ -15,12 +15,41 @@ const Login = () => {
   const [otp, setOtp] = useState(""); // ✅ new state for forgot password
   const [loading, setLoading] = useState(false);
 
+  const [errors, setErrors] = useState({}); // ✅ validation errors state
+
   const [showPassword, setShowPassword] = useState(false);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  /* ================= VALIDATION ================= */
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (currentState === "Sign Up") {
+      if (!name.trim()) newErrors.name = "Name is required.";
+      if (!shopName.trim()) newErrors.shopName = "Shop name is required.";
+      if (!mobile.trim() || !/^\+?[0-9]{10,15}$/.test(mobile.replace(/\s+/g, ""))) {
+        newErrors.mobile = "Enter a valid mobile number.";
+      }
+      if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        newErrors.email = "Enter a valid email address.";
+      }
+      if (password.length < 8) {
+        newErrors.password = "Password must be at least 8 characters.";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   /* ================= SUBMIT ================= */
   const onSubmitHander = async (e) => {
     e.preventDefault();
+
+    // Prevent submission if validation fails (Sign Up only)
+    if (currentState === "Sign Up" && !validateForm()) {
+      return;
+    }
 
     try {
       if (!backendUrl) {
@@ -115,50 +144,75 @@ const Login = () => {
 
       {/* ✅ Name Field */}
       {currentState === "Sign Up" && (
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-800 rounded-md"
-          placeholder="Name"
-          required
-        />
+        <div className="w-full relative">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setErrors((prev) => ({ ...prev, name: "" }));
+            }}
+            className={`w-full px-3 py-2 border rounded-md ${errors.name ? 'border-red-500' : 'border-gray-800'}`}
+            placeholder="Name"
+            required
+          />
+          {errors.name && <p className="text-red-500 text-xs mt-1 absolute">{errors.name}</p>}
+        </div>
       )}
 
       {/* ✅ Shop Name Field */}
       {currentState === "Sign Up" && (
-        <input
-          type="text"
-          value={shopName}
-          onChange={(e) => setShopName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-800 rounded-md"
-          placeholder="Shop Name"
-          required
-        />
+        <div className="w-full relative mt-2">
+          <input
+            type="text"
+            value={shopName}
+            onChange={(e) => {
+              setShopName(e.target.value);
+              setErrors((prev) => ({ ...prev, shopName: "" }));
+            }}
+            className={`w-full px-3 py-2 border rounded-md ${errors.shopName ? 'border-red-500' : 'border-gray-800'}`}
+            placeholder="Shop Name"
+            required
+          />
+          {errors.shopName && <p className="text-red-500 text-xs mt-1 absolute">{errors.shopName}</p>}
+        </div>
       )}
 
       {/* ✅ Mobile Field */}
       {(currentState === "Sign Up" || currentState === "Forgot Password") && (
-        <input
-          type="tel"
-          value={mobile}
-          onChange={(e) => setMobile(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-800 rounded-md"
-          placeholder="Mobile Number"
-          required
-        />
+        <div className="w-full relative mt-2">
+          <input
+            type="tel"
+            value={mobile}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9+]/g, "");
+              setMobile(val);
+              setErrors((prev) => ({ ...prev, mobile: "" }));
+            }}
+            className={`w-full px-3 py-2 border rounded-md ${errors.mobile ? 'border-red-500' : 'border-gray-800'}`}
+            placeholder="Mobile Number"
+            required
+          />
+          {errors.mobile && <p className="text-red-500 text-xs mt-1 absolute">{errors.mobile}</p>}
+        </div>
       )}
 
       {/* Email */}
       {(currentState === "Login" || currentState === "Sign Up") && (
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-800 rounded-md"
-          placeholder="E-mail"
-          required
-        />
+        <div className="w-full relative mt-2">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErrors((prev) => ({ ...prev, email: "" }));
+            }}
+            className={`w-full px-3 py-2 border rounded-md ${errors.email ? 'border-red-500' : 'border-gray-800'}`}
+            placeholder="E-mail"
+            required
+          />
+          {errors.email && <p className="text-red-500 text-xs mt-1 absolute">{errors.email}</p>}
+        </div>
       )}
 
       {/* Mobile Read-only for Reset Password */}
@@ -187,27 +241,32 @@ const Login = () => {
 
       {/* ✅ Password with Show/Hide */}
       {(currentState === "Login" || currentState === "Sign Up" || currentState === "Reset Password") && (
-        <div className="w-full relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-800 rounded-md pr-16"
-            placeholder={currentState === "Reset Password" ? "New Password" : "Password"}
-            required
-          />
-
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-600 hover:underline"
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
+        <div className="w-full relative mt-2">
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setErrors((prev) => ({ ...prev, password: "" }));
+              }}
+              className={`w-full px-3 py-2 border rounded-md pr-16 ${errors.password ? 'border-red-500' : 'border-gray-800'}`}
+              placeholder={currentState === "Reset Password" ? "New Password" : "Password"}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-600 hover:underline"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
+          {errors.password && <p className="text-red-500 text-xs mt-1 absolute">{errors.password}</p>}
         </div>
       )}
 
-      <div className="w-full flex justify-between text-sm mt-[-8px]">
+      <div className="w-full flex justify-between text-sm mt-3">
         {currentState === "Login" && (
           <p
             onClick={() => setCurrentState("Forgot Password")}
