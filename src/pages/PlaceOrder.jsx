@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState, useRef } from "react";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
@@ -14,6 +14,7 @@ import { getPackPriceFromVariant } from "../utils/price";
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
   const [loading, setLoading] = useState(false);
+  const formRef = useRef(null);
 
   const {
     navigate,
@@ -277,7 +278,16 @@ const PlaceOrder = () => {
   const onSubmitHandler = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Find the first error message and scroll to it
+      setTimeout(() => {
+        const firstError = document.querySelector(".text-red-500");
+        if (firstError) {
+          firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+      return;
+    }
 
     if (!token) {
       alert('Please login to place an order');
@@ -336,10 +346,47 @@ const PlaceOrder = () => {
           setCartItems({});
           localStorage.removeItem("cartItems");
 
+          const order = res.data.order;
+          const orderNo = order?.orderNumber || order?._id || "N/A";
+          const userName = formData.firstName + " " + formData.lastName;
+          const userMobile = formData.phone;
+
+          // Build formatted message matching the requested template
+          let msg = ` *New Order Received – Fabnoor*\n\n`;
+          msg += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+          msg += ` *Order Details*\n`;
+          msg += `Order No: *${orderNo}*\n\n`;
+          msg += ` *Customer Information*\n`;
+          msg += `Name: ${userName}\n`;
+          msg += `Mobile: ${userMobile}\n\n`;
+          msg += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+          msg += ` *Product Ordered*\n`;
+
+          const baseUrl = "https://fabnoor.com";
+
+          items.forEach((item, index) => {
+            const productUrl = `${baseUrl}/product/${item.productId}`;
+            msg += `Product: *${item.name}*\n`;
+            msg += `Product Link: ${productUrl}\n\n`;
+            msg += `Variant: ${item.color || ''} ${item.type || item.fabric || ''}\n`;
+            msg += `Size: ${item.size.join(', ')}\n`;
+            msg += `Quantity: ${item.quantity}\n`;
+            msg += `Price: ₹${item.price}\n`;
+
+            if (index < items.length - 1) {
+              msg += `\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+            }
+          });
+
+          msg += `\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+          msg += ` *Order Summary*\n`;
+          msg += `Grand Total: *₹${orderData.amount}*\n\n`;
+          msg += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+          msg += ` Kindly confirm this order.\n`;
+          msg += `Thank you for shopping with *Fabnoor*!`;
+
           // Open WhatsApp with a confirmation message to seller
           const adminPhone = (import.meta.env.VITE_WHATSAPP_NUMBER || "919979624404").replace(/^\+/, "");
-          const orderId = res.data.order?._id || res.data.order?.orderNumber || "";
-          const msg = `Hello Fabnoor! I just placed a new order via WhatsApp.\n\n*Order ID:* ${orderId}\n*Total:* ₹${orderData.amount}\n*Items:* ${items.length} item(s)\n\nPlease confirm my order. Thank you!`;
           window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, "_blank");
 
           navigate("/order", { replace: true });
@@ -633,9 +680,11 @@ const PlaceOrder = () => {
                       toast.error("Razorpay is not available for wholesale users. Please choose WhatsApp.", { autoClose: 3000 });
                       // Intentionally NOT setting method to "razorpay"
                     }}
-                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 bg-gray-50 opacity-60 cursor-not-allowed border-gray-200`}
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-start px-6 gap-4 bg-gray-50 opacity-60 cursor-not-allowed border-gray-200`}
                     title="Not available for wholesale users"
                   >
+                    <div className="min-w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center opacity-60">
+                    </div>
                     <img
                       className="h-6 opacity-60 grayscale"
                       src={assets.razorpay_logo}
@@ -647,12 +696,15 @@ const PlaceOrder = () => {
                   <button
                     type="button"
                     onClick={() => setMethod("whatsapp")}
-                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold ${method === "whatsapp"
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-start px-6 gap-4 font-semibold ${method === "whatsapp"
                       ? "border-[#25D366] bg-green-50 text-[#128C7E]"
                       : "border-gray-200 text-gray-700 hover:border-green-400"
                       }`}
                   >
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <div className={`min-w-5 h-5 border-2 rounded-full flex items-center justify-center ${method === 'whatsapp' ? 'border-[#128C7E]' : 'border-gray-300'}`}>
+                      {method === 'whatsapp' && <div className="w-2.5 h-2.5 bg-[#128C7E] rounded-full"></div>}
+                    </div>
+                    <svg className="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.02-.956-.263-.089-.454-.134-.644.15-.19.283-.735.956-.9 1.144-.165.188-.331.21-.628.061-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.644-1.554-.882-2.126-.231-.555-.465-.48-.644-.488-.166-.008-.356-.01-.546-.01-.19 0-.5-.072-.761.21-.261.282-1.001.978-1.001 2.388 0 1.41 1.026 2.774 1.17 2.962.143.188 2.019 3.084 4.889 4.326.682.296 1.214.473 1.629.605.685.217 1.307.186 1.802.113.551-.082 1.758-.719 2.007-1.413.25-.694.25-1.289.175-1.413-.075-.124-.271-.197-.568-.346z" />
                       <path d="M12.004 0C5.378 0 0 5.378 0 12.004c0 2.112.547 4.178 1.585 6.002L0 24l6.166-1.618a11.94 11.94 0 0 0 5.838 1.518c6.626 0 12.004-5.378 12.004-12.004S18.63 0 12.004 0zm0 21.944a9.9 9.9 0 0 1-5.056-1.388l-.362-.216-3.758.985 1.002-3.663-.238-.378a9.904 9.904 0 0 1-1.521-5.28c0-5.478 4.456-9.934 9.934-9.934 5.478 0 9.934 4.456 9.934 9.934 0 5.478-4.456 9.934-9.934 9.934z" />
                     </svg>
@@ -662,11 +714,14 @@ const PlaceOrder = () => {
                   <button
                     type="button"
                     onClick={() => setMethod("cod")}
-                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 font-semibold ${method === "cod"
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-start px-6 gap-4 font-semibold ${method === "cod"
                       ? "border-pink-500 bg-pink-50 text-pink-600"
                       : "border-gray-200 text-gray-700 hover:border-pink-300"
                       }`}
                   >
+                    <div className={`min-w-5 h-5 border-2 rounded-full flex items-center justify-center ${method === 'cod' ? 'border-pink-500' : 'border-gray-300'}`}>
+                      {method === 'cod' && <div className="w-2.5 h-2.5 bg-pink-500 rounded-full"></div>}
+                    </div>
                     CASH ON DELIVERY
                   </button>
                 </div>
