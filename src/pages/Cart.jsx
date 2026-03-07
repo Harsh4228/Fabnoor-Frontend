@@ -8,7 +8,7 @@ import SetInfo from "../components/SetInfo";
 import { toast } from "react-toastify";
 
 const Cart = () => {
-  const { products, cartItems, currency, updateQuantity, navigate, token } =
+  const { products, cartItems, currency, updateQuantity, navigate, token, getProductDiscount } =
     useContext(ShopContext);
 
   // ✅ Login guard — redirect to /login if not authenticated
@@ -178,11 +178,16 @@ const Cart = () => {
                   <div className="flex items-center gap-2 md:justify-center">
                     <div>
                       <div className="text-lg font-bold text-pink-500">
-                        {currency}{formatNumber(getPackPriceFromVariant(v))}
+                        {currency}{formatNumber(getPackPriceFromVariant(v, getProductDiscount(product)))}
                       </div>
                       <div className="text-xs text-gray-500">
-                        (Per pc) {currency}{formatNumber(getPerPiecePriceFromVariant(v))}
+                        (Per pc) {currency}{formatNumber(getPerPiecePriceFromVariant(v, getProductDiscount(product)))}
                       </div>
+                      {getProductDiscount(product) > 0 && (
+                        <div className="text-[10px] text-gray-400 line-through">
+                          {currency}{formatNumber(getPackPriceFromVariant(v))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -223,7 +228,7 @@ const Cart = () => {
                   <div className="flex items-center gap-4 justify-between md:justify-end">
                     <p className="font-bold text-xl text-gray-900">
                       {currency}
-                      {formatNumber(getPackPriceFromVariant(v) * item.quantity)}
+                      {formatNumber(getPackPriceFromVariant(v, getProductDiscount(product)) * item.quantity)}
                     </p>
 
                     <button

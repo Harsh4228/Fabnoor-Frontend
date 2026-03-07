@@ -24,6 +24,7 @@ const PlaceOrder = () => {
     getCartAmount,
     delivery_fee,
     products,
+    getProductDiscount,
   } = useContext(ShopContext);
 
   // Debug helper: safely mask token for logs
@@ -224,7 +225,7 @@ const PlaceOrder = () => {
             ? matchedVariant.sizes
             : [matchedVariant.fabric || matchedVariant.type || itemType || ""],
           quantity: qty,
-          price: getPackPriceFromVariant(matchedVariant) || 0,
+          price: getPackPriceFromVariant(matchedVariant, getProductDiscount(product)) || 0,
           image,
         });
 
@@ -264,7 +265,7 @@ const PlaceOrder = () => {
             type: matchedVariant.fabric || matchedVariant.type || "",
             size: [size],
             quantity: qty,
-            price: getPackPriceFromVariant(matchedVariant) || 0,
+            price: getPackPriceFromVariant(matchedVariant, getProductDiscount(product)) || 0,
             image,
           });
         }

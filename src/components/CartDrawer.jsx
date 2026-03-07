@@ -15,6 +15,7 @@ const CartDrawer = () => {
     delivery_fee,
     updateQuantity,
     navigate,
+    getProductDiscount,
   } = useContext(ShopContext);
 
   // convert cart object to array for rendering — newest items at top
@@ -46,13 +47,14 @@ const CartDrawer = () => {
             product?.variants?.[0];
         }
 
+        const discount = getProductDiscount(product);
         arr.push({
           key: cartKey,
           productId,
           name: product.name,
           qty,
           price: Number(variant?.price || 0),
-          packPrice: Number(variant?.price || 0) * (variant?.sizes?.length || 1),
+          packPrice: (Number(variant?.price || 0) * (variant?.sizes?.length || 1)) * (1 - discount / 100),
           image: variant?.images?.[0] || assets.placeholder_image,
           color: variant?.color || color,
           fabric: variant?.fabric || fabric,

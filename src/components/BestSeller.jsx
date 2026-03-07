@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
+import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 import { getPerPiecePrice, formatNumber, getPackPrice } from "../utils/price";
 import axios from "axios";
 
 const BestSeller = () => {
+  const { getProductDiscount } = useContext(ShopContext);
   const [bestSellers, setBestSellers] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -57,10 +59,15 @@ const BestSeller = () => {
               {/* Product Card */}
               <div className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gray-50 mb-3 shadow-sm hover:shadow-xl transition-all duration-300">
                 {/* Bestseller Badge */}
-                <div className="absolute top-2 md:top-3 left-2 md:left-3 z-10">
+                <div className="absolute top-2 md:top-3 left-2 md:left-3 z-10 flex flex-col gap-1">
                   <span className="bg-rose-500 text-white text-[10px] md:text-xs font-medium px-2 md:px-3 py-1 rounded-full shadow-md">
                     BESTSELLER
                   </span>
+                  {getProductDiscount(item) > 0 && (
+                    <span className="bg-red-600 text-white text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow-md uppercase">
+                      {getProductDiscount(item)}% OFF
+                    </span>
+                  )}
                 </div>
 
                 {/* Wishlist Button */}
@@ -100,10 +107,18 @@ const BestSeller = () => {
                 <h3 className="text-xs md:text-sm font-medium text-gray-800 mb-1 truncate group-hover:text-rose-500 transition-colors">
                   {item.name}
                 </h3>
-                <p className="text-sm md:text-base font-serif text-rose-500">
-                  <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item))}</span>
-                  <span className="text-xs md:text-sm text-gray-200 ml-2">(Full Set) ₹{formatNumber(getPackPrice(item))} </span>
-                </p>
+                <div className="text-sm md:text-base font-serif text-rose-500">
+                  <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item, getProductDiscount(item)))}</span>
+                  {getProductDiscount(item) > 0 && (
+                    <span className="text-[10px] text-gray-400 line-through ml-2">₹{formatNumber(getPerPiecePrice(item))}</span>
+                  )}
+                  <div className="text-xs md:text-sm text-gray-400 mt-0.5">
+                    (Full Set) ₹{formatNumber(getPackPrice(item, getProductDiscount(item)))}
+                    {getProductDiscount(item) > 0 && (
+                      <span className="text-[10px] text-gray-300 line-through ml-1">₹{formatNumber(getPackPrice(item))}</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </Link>
           ))}

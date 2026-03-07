@@ -24,6 +24,7 @@ const Product = () => {
     isInWishlist,
     navigate,
     setShowCartDrawer,
+    getProductDiscount,
   } = useContext(ShopContext);
 
   const [productData, setProductData] = useState(null);
@@ -161,9 +162,13 @@ const Product = () => {
   }
 
   const sizesArr = sortSizes(selectedVariant?.sizes);
+  const discount = getProductDiscount(productData);
   const perPiecePrice = Number(selectedVariant?.price || 0);
   const piecesCount = sizesArr.length || 1;
   const packPrice = perPiecePrice * piecesCount;
+
+  const discountedPerPiece = perPiecePrice * (1 - discount / 100);
+  const discountedPack = packPrice * (1 - discount / 100);
 
 
   /* ================= CART (ADD 1 PACK ONLY) ================= */
@@ -340,14 +345,33 @@ const Product = () => {
 
             {/* Price Block */}
             <div className="mb-4 mt-2">
-              <div className="flex items-baseline">
-                <span className="text-sm font-medium relative top-[-0.5rem] text-pink-500">₹</span>
-                <span className="text-4xl font-bold text-pink-500">{formatNumber(perPiecePrice)}</span>
-                <span className="text-sm font-medium text-gray-500 ml-2">(Per piece)</span>
+              <div className="flex items-center gap-3">
+                {discount > 0 && (
+                  <div className="flex flex-col">
+                    <span className="text-2xl font-bold text-red-600">-{discount}%</span>
+                  </div>
+                )}
+                <div className="flex items-baseline">
+                  <span className="text-sm font-medium relative top-[-0.5rem] text-pink-500">₹</span>
+                  <span className="text-4xl font-bold text-pink-500">{formatNumber(discountedPerPiece)}</span>
+                  <span className="text-sm font-medium text-gray-500 ml-2">(Per piece)</span>
+                </div>
               </div>
 
+              {discount > 0 && (
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="text-sm text-gray-500">M.R.P.:</span>
+                  <span className="text-sm text-gray-500 line-through">₹{formatNumber(perPiecePrice)}</span>
+                </div>
+              )}
+
               <div className="text-sm text-gray-600 mt-1 mb-1">Inclusive of all taxes</div>
-              <div className="text-base font-bold text-gray-800">Total Packs Value: ₹{formatNumber(packPrice)}</div>
+              <div className="text-base font-bold text-gray-800">
+                Total Packs Value: ₹{formatNumber(discountedPack)}
+                {discount > 0 && (
+                  <span className="text-sm font-normal text-gray-400 line-through ml-2">₹{formatNumber(packPrice)}</span>
+                )}
+              </div>
             </div>
 
             <hr className="my-4 border-gray-200" />
@@ -369,7 +393,7 @@ const Product = () => {
                     >
                       <img src={v.images?.[0] || assets.placeholder_image} className="w-full aspect-[3/4] object-cover" alt="" />
                       <div className="py-1 w-full text-center bg-gray-50 border-t border-gray-100">
-                        <p className="text-xs text-[#0F1111] font-medium">₹{formatNumber(v.price)}</p>
+                        <p className="text-xs text-[#0F1111] font-medium">₹{formatNumber(v.price * (1 - discount / 100))}</p>
                       </div>
                     </button>
                   );
@@ -400,7 +424,9 @@ const Product = () => {
 
             {/* Buy Action Box */}
             <div className="border border-gray-200 rounded-lg p-4 mb-6 shadow-sm">
-              <p className="text-xl font-medium text-[#0F1111] mb-1">₹{formatNumber(packPrice)} <span className="text-sm font-normal text-[#565959]">/ Pack</span></p>
+              <p className="text-xl font-medium text-[#0F1111] mb-1">
+                ₹{formatNumber(discountedPack)} <span className="text-sm font-normal text-[#565959]">/ Pack</span>
+              </p>
 
               {/* STOCK STATUS */}
               {(() => {

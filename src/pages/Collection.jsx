@@ -9,7 +9,7 @@ import SetInfo from "../components/SetInfo";
 import axios from "axios";
 
 const Collection = () => {
-  const { search, showSearch } = useContext(ShopContext);
+  const { search, showSearch, getProductDiscount } = useContext(ShopContext);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [searchParams] = useSearchParams();
@@ -295,16 +295,29 @@ const Collection = () => {
                     />
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  {getProductDiscount(item) > 0 && (
+                    <div className="absolute top-3 left-3 z-10 bg-red-600 text-white text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow-md uppercase">
+                      {getProductDiscount(item)}% OFF
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-center px-1">
                   <h3 className="text-xs md:text-sm font-medium text-gray-800 mb-1 truncate group-hover:text-rose-500 transition-colors">
                     {item.name}
                   </h3>
-                  <p className="text-sm md:text-base font-serif text-rose-500">
-                    <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item))}/pc</span>
-                    <span className="text-xs md:text-sm text-gray-400 ml-2">(Full Set) ₹{formatNumber(getPackPrice(item))}</span>
-                  </p>
+                  <div className="text-sm md:text-base font-serif text-rose-500">
+                    <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item, getProductDiscount(item)))}/pc</span>
+                    {getProductDiscount(item) > 0 && (
+                      <span className="text-[10px] text-gray-400 line-through ml-2">₹{formatNumber(getPerPiecePrice(item))}</span>
+                    )}
+                    <div className="text-[10px] md:text-xs text-gray-400 mt-0.5">
+                      (Full Set) ₹{formatNumber(getPackPrice(item, getProductDiscount(item)))}
+                      {getProductDiscount(item) > 0 && (
+                        <span className="text-[10px] text-gray-300 line-through ml-1">₹{formatNumber(getPackPrice(item))}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </Link>
             ))}

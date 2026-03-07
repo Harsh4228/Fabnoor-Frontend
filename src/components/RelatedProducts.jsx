@@ -8,6 +8,7 @@ import axios from "axios";
 import PropTypes from 'prop-types';
 
 const RelatedProducts = ({ category, subCategory, currentProductId }) => {
+  const { getProductDiscount } = useContext(ShopContext);
   const [related, setRelated] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -93,10 +94,18 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
                   <p className="text-sm font-medium text-gray-900 truncate group-hover:text-pink-500 transition-colors mb-2">
                     {item.name}
                   </p>
-                  <p className="text-lg font-bold text-pink-500">
-                    <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item))}</span>
-                    <span className="text-sm text-gray-500 ml-2">(Full Set) ₹{formatNumber(getPackPrice(item))}</span>
-                  </p>
+                  <div className="text-lg font-bold text-pink-500">
+                    <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item, getProductDiscount(item)))}</span>
+                    {getProductDiscount(item) > 0 && (
+                      <span className="text-[10px] text-gray-400 line-through ml-2">₹{formatNumber(getPerPiecePrice(item))}</span>
+                    )}
+                    <div className="text-xs text-gray-400 mt-1">
+                      (Full Set) ₹{formatNumber(getPackPrice(item, getProductDiscount(item)))}
+                      {getProductDiscount(item) > 0 && (
+                        <span className="text-[10px] text-gray-300 line-through ml-1">₹{formatNumber(getPackPrice(item))}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </Link>
             ))

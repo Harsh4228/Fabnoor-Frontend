@@ -16,6 +16,8 @@ export const ShopContextProvider = ({ children }) => {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
+  const [globalDiscount, setGlobalDiscount] = useState({ discountPercentage: 0, isActive: false });
+
   // ✅ SIDE CART DRAWER STATE
   const [showCartDrawer, setShowCartDrawerState] = useState(false);
   // prevent accidental auto-close: when drawer is opened programmatically
@@ -206,6 +208,11 @@ export const ShopContextProvider = ({ children }) => {
   }, [guestWishlist]);
 
   /* ================= FIND VARIANT ================= */
+  const getProductDiscount = useCallback((product) => {
+    if (globalDiscount.isActive) return globalDiscount.discountPercentage;
+    return product?.discount || 0;
+  }, [globalDiscount]);
+
   const findVariant = (product, color, fabric, code) => {
     if (!product?.variants?.length) return null;
 
@@ -228,7 +235,12 @@ export const ShopContextProvider = ({ children }) => {
   const getCartItems = () => {
     let total = 0;
     for (const key in cartItems) {
-      total += Number(cartItems[key]?.quantity || 0);
+      const productId = key.includes("::") ? key.split("::")[0] : key;
+      const product = products.find((p) => p._id === productId);
+      // Only count if product exists in cache
+      if (product) {
+        total += Number(cartItems[key]?.quantity || 0);
+      }
     }
     return total;
   };
@@ -333,8 +345,9 @@ export const ShopContextProvider = ({ children }) => {
       const variant = findVariant(product, color, fabric, code);
       if (!variant) continue;
 
+      const discount = getProductDiscount(product);
       // price stored as per-piece; use full pack price for cart total
-      const packPrice = getPackPriceFromVariant(variant);
+      const packPrice = getPackPriceFromVariant(variant, discount);
       total += qty * packPrice;
     }
 
@@ -595,8 +608,31 @@ export const ShopContextProvider = ({ children }) => {
     }
   }, [token, guestWishlist, backendUrl, authHeader, getWishlist]);
 
+  // ✅ Cleanup orphaned guest wishlist items
+  useEffect(() => {
+    if (products.length > 0) {
+      setGuestWishlist((prev) => {
+        const updated = prev.filter(item => products.some(p => p._id === item.productId));
+        return updated.length !== prev.length ? updated : prev;
+      });
+    }
+  }, [products]);
+
+  /* ================= FETCH GLOBAL DISCOUNT ================= */
+  const fetchGlobalDiscount = useCallback(async () => {
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/discount/get`);
+      if (data.success) {
+        setGlobalDiscount(data.globalDiscount);
+      }
+    } catch (err) {
+      console.log("Global discount fetch error:", err);
+    }
+  }, [backendUrl]);
+
   /* ================= LOAD ON START ================= */
   useEffect(() => {
+    fetchGlobalDiscount();
     if (!token) {
       loadGuestCartProducts(cartItems);
 
@@ -661,6 +697,25 @@ export const ShopContextProvider = ({ children }) => {
     getWishlist();
   }, [getWishlist]);
 
+  // ✅ Cleanup orphaned cart items from local state when products list changes
+  useEffect(() => {
+    if (products.length > 0) {
+      setCartItems((prev) => {
+        const updated = { ...prev };
+        let changed = false;
+        for (const key in updated) {
+          const pid = key.includes("::") ? key.split("::")[0] : key;
+          const exists = products.some(p => p._id === pid);
+          if (!exists) {
+            delete updated[key];
+            changed = true;
+          }
+        }
+        return changed ? updated : prev;
+      });
+    }
+  }, [products]);
+
   // ✅ merge guest wishlist after login
   useEffect(() => {
     if (token) mergeGuestWishlistToDB();
@@ -700,6 +755,10 @@ export const ShopContextProvider = ({ children }) => {
         navigate,
         token,
         setToken,
+
+        // discount
+        globalDiscount,
+        getProductDiscount,
       }}
     >
       {children}
