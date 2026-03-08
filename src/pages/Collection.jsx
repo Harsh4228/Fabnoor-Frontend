@@ -18,7 +18,8 @@ const Collection = () => {
 
   const [showFilter, setShowFilter] = useState(false);
   const [showSort, setShowSort] = useState(false);
-  const sortRef = useRef(null);
+  const mobileSortRef = useRef(null);
+  const desktopSortRef = useRef(null);
 
   // Data state
   const [productsList, setProductsList] = useState([]);
@@ -88,11 +89,13 @@ const Collection = () => {
       if (showSearch && search) params.search = search;
       if (sortType !== "relevant") params.sortType = sortType;
 
-      const { data } = await axios.get(`${backendUrl}/api/product/list`, { params });
+      const { data } = await axios.get(`${backendUrl}/api/product/list`, {
+        params,
+      });
 
       if (data.success) {
         if (isAppend) {
-          setProductsList(prev => [...prev, ...data.products]);
+          setProductsList((prev) => [...prev, ...data.products]);
         } else {
           setProductsList(data.products);
         }
@@ -122,7 +125,12 @@ const Collection = () => {
   /* CLOSE SORT ON OUTSIDE CLICK */
   useEffect(() => {
     const handler = (e) => {
-      if (sortRef.current && !sortRef.current.contains(e.target)) {
+      const isOutsideMobile =
+        mobileSortRef.current && !mobileSortRef.current.contains(e.target);
+      const isOutsideDesktop =
+        desktopSortRef.current && !desktopSortRef.current.contains(e.target);
+
+      if (isOutsideMobile && isOutsideDesktop) {
         setShowSort(false);
       }
     };
@@ -142,7 +150,7 @@ const Collection = () => {
         </button>
 
         {/* CUSTOM SORT */}
-        <div className="relative" ref={sortRef}>
+        <div className="relative" ref={mobileSortRef}>
           <button
             onClick={() => setShowSort(!showSort)}
             className="flex items-center gap-2 px-4 py-2 border rounded-full text-sm"
@@ -164,8 +172,9 @@ const Collection = () => {
                     setSortType(s.key);
                     setShowSort(false);
                   }}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 ${sortType === s.key ? "text-pink-500 font-medium" : ""
-                    }`}
+                  className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 ${
+                    sortType === s.key ? "text-pink-500 font-medium" : ""
+                  }`}
                 >
                   {s.label}
                 </button>
@@ -186,56 +195,79 @@ const Collection = () => {
 
             {/* HIERARCHICAL CATEGORY LIST */}
             <div className="space-y-6">
-              {allCategories.map((cat) => {
-                const subs = subCategoriesMap[cat] || [];
-                const isSelected = category.includes(cat);
+              {[...allCategories]
+                .sort((a, b) => a.localeCompare(b))
+                .map((cat) => {
+                  const subs = [...(subCategoriesMap[cat] || [])].sort((a, b) =>
+                    a.localeCompare(b),
+                  );
+                  const isSelected = category.includes(cat);
 
-                return (
-                  <div key={cat} className="group">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="flex items-center gap-3 text-sm font-semibold text-gray-800 cursor-pointer group-hover:text-pink-500 transition-colors">
-                        <input
-                          type="checkbox"
-                          className="w-4 h-4 accent-pink-500 rounded-md"
-                          checked={isSelected}
-                          onChange={() =>
-                            setCategory((p) =>
-                              p.includes(cat) ? p.filter((x) => x !== cat) : [...p, cat]
-                            )
-                          }
-                        />
-                        <span className="capitalize">{cat}</span>
-                      </label>
-                      {subs.length > 0 && (
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${isSelected ? "bg-pink-100 text-pink-600" : "bg-gray-100 text-gray-500"}`}>
-                          {subs.length}
-                        </span>
+                  return (
+                    <div key={cat} className="group">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="flex items-center gap-3 text-sm font-semibold text-gray-800 cursor-pointer group-hover:text-pink-500 transition-colors">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 accent-pink-500 rounded-md"
+                            checked={isSelected}
+                            onChange={() =>
+                              setCategory((p) => {
+                                const isUnselecting = p.includes(cat);
+                                if (isUnselecting) {
+                                  // Clear subcategories belonging to this category
+                                  const subsToClear =
+                                    subCategoriesMap[cat] || [];
+                                  setSubCategory((prevSubs) =>
+                                    prevSubs.filter(
+                                      (s) => !subsToClear.includes(s),
+                                    ),
+                                  );
+                                  return p.filter((x) => x !== cat);
+                                }
+                                return [...p, cat];
+                              })
+                            }
+                          />
+                          <span className="capitalize">{cat}</span>
+                        </label>
+                        {subs.length > 0 && (
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full ${isSelected ? "bg-pink-100 text-pink-600" : "bg-gray-100 text-gray-500"}`}
+                          >
+                            {subs.length}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* SUB-CATEGORIES NESTED UNDERNEATH */}
+                      {isSelected && subs.length > 0 && (
+                        <div className="ml-7 mt-2 space-y-2 border-l-2 border-pink-50 pl-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                          {subs.map((s) => (
+                            <label
+                              key={s}
+                              className="flex items-center gap-3 text-xs text-gray-600 hover:text-pink-500 cursor-pointer transition-all"
+                            >
+                              <input
+                                type="checkbox"
+                                className="w-3.5 h-3.5 accent-pink-500 rounded"
+                                checked={subCategory.includes(s)}
+                                onChange={() =>
+                                  setSubCategory((p) =>
+                                    p.includes(s)
+                                      ? p.filter((x) => x !== s)
+                                      : [...p, s],
+                                  )
+                                }
+                              />
+                              <span className="capitalize">{s}</span>
+                            </label>
+                          ))}
+                        </div>
                       )}
                     </div>
-
-                    {/* SUB-CATEGORIES NESTED UNDERNEATH */}
-                    {isSelected && subs.length > 0 && (
-                      <div className="ml-7 mt-2 space-y-2 border-l-2 border-pink-50 pl-4 animate-in fade-in slide-in-from-left-2 duration-300">
-                        {subs.map((s) => (
-                          <label key={s} className="flex items-center gap-3 text-xs text-gray-600 hover:text-pink-500 cursor-pointer transition-all">
-                            <input
-                              type="checkbox"
-                              className="w-3.5 h-3.5 accent-pink-500 rounded"
-                              checked={subCategory.includes(s)}
-                              onChange={() =>
-                                setSubCategory((p) =>
-                                  p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
-                                )
-                              }
-                            />
-                            <span className="capitalize">{s}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </div>
         </div>
@@ -249,7 +281,7 @@ const Collection = () => {
             </div>
 
             {/* DESKTOP SORT */}
-            <div className="relative" ref={sortRef}>
+            <div className="relative" ref={desktopSortRef}>
               <button
                 onClick={() => setShowSort(!showSort)}
                 className="flex items-center gap-2 px-4 py-2 border rounded-full"
@@ -271,8 +303,9 @@ const Collection = () => {
                         setSortType(s.key);
                         setShowSort(false);
                       }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 ${sortType === s.key ? "text-pink-500 font-medium" : ""
-                        }`}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-pink-50 ${
+                        sortType === s.key ? "text-pink-500 font-medium" : ""
+                      }`}
                     >
                       {s.label}
                     </button>
@@ -285,7 +318,11 @@ const Collection = () => {
           {/* GRID */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
             {productsList.map((item) => (
-              <Link key={item._id} to={`/product/${item._id}`} className="group relative block">
+              <Link
+                key={item._id}
+                to={`/product/${item._id}`}
+                className="group relative block"
+              >
                 <div className="relative rounded-2xl overflow-hidden bg-gray-50 mb-3 shadow hover:shadow-xl transition border border-transparent hover:border-pink-100">
                   <div className="w-full h-48 md:h-56 overflow-hidden">
                     <img
@@ -307,14 +344,27 @@ const Collection = () => {
                     {item.name}
                   </h3>
                   <div className="text-sm md:text-base font-serif text-rose-500">
-                    <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item, getProductDiscount(item)))}/pc</span>
+                    <span className="font-semibold">
+                      ₹
+                      {formatNumber(
+                        getPerPiecePrice(item, getProductDiscount(item)),
+                      )}
+                      /pc
+                    </span>
                     {getProductDiscount(item) > 0 && (
-                      <span className="text-[10px] text-gray-400 line-through ml-2">₹{formatNumber(getPerPiecePrice(item))}</span>
+                      <span className="text-[10px] text-gray-400 line-through ml-2">
+                        ₹{formatNumber(getPerPiecePrice(item))}
+                      </span>
                     )}
                     <div className="text-[10px] md:text-xs text-gray-400 mt-0.5">
-                      (Full Set) ₹{formatNumber(getPackPrice(item, getProductDiscount(item)))}
+                      (Full Set) ₹
+                      {formatNumber(
+                        getPackPrice(item, getProductDiscount(item)),
+                      )}
                       {getProductDiscount(item) > 0 && (
-                        <span className="text-[10px] text-gray-300 line-through ml-1">₹{formatNumber(getPackPrice(item))}</span>
+                        <span className="text-[10px] text-gray-300 line-through ml-1">
+                          ₹{formatNumber(getPackPrice(item))}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -326,7 +376,9 @@ const Collection = () => {
           {/* EMPTY STATE */}
           {!loading && productsList.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-gray-500 text-lg">No products found matching your filters.</p>
+              <p className="text-gray-500 text-lg">
+                No products found matching your filters.
+              </p>
             </div>
           )}
 
@@ -351,11 +403,13 @@ const Collection = () => {
           )}
 
           {/* END OF LIST */}
-          {!loading && productsList.length > 0 && productsList.length >= totalCount && (
-            <div className="text-center mt-12 mb-10 text-gray-400 text-sm">
-              You've reached the end of the list.
-            </div>
-          )}
+          {!loading &&
+            productsList.length > 0 &&
+            productsList.length >= totalCount && (
+              <div className="text-center mt-12 mb-10 text-gray-400 text-sm">
+                You've reached the end of the list.
+              </div>
+            )}
         </div>
       </div>
 
@@ -366,64 +420,95 @@ const Collection = () => {
             <p className="font-bold mb-6 text-xl text-gray-900">Filters</p>
 
             <div className="space-y-6">
-              {allCategories.map((cat) => {
-                const subs = subCategoriesMap[cat] || [];
-                const isSelected = category.includes(cat);
+              {[...allCategories]
+                .sort((a, b) => a.localeCompare(b))
+                .map((cat) => {
+                  const subs = [...(subCategoriesMap[cat] || [])].sort((a, b) =>
+                    a.localeCompare(b),
+                  );
+                  const isSelected = category.includes(cat);
 
-                return (
-                  <div key={cat} className="border-b border-gray-100 pb-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="flex items-center gap-4 text-base font-semibold text-gray-800">
-                        <input
-                          type="checkbox"
-                          className="w-5 h-5 accent-pink-500 rounded-md"
-                          checked={isSelected}
-                          onChange={() =>
-                            setCategory((p) =>
-                              p.includes(cat) ? p.filter((x) => x !== cat) : [...p, cat]
-                            )
-                          }
-                        />
-                        <span className="capitalize">{cat}</span>
-                      </label>
-                      {subs.length > 0 && (
-                        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
-                          {subs.length}
-                        </span>
+                  return (
+                    <div key={cat} className="border-b border-gray-100 pb-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <label className="flex items-center gap-4 text-base font-semibold text-gray-800">
+                          <input
+                            type="checkbox"
+                            className="w-5 h-5 accent-pink-500 rounded-md"
+                            checked={isSelected}
+                            onChange={() =>
+                              setCategory((p) => {
+                                const isUnselecting = p.includes(cat);
+                                if (isUnselecting) {
+                                  const subsToClear =
+                                    subCategoriesMap[cat] || [];
+                                  setSubCategory((prevSubs) =>
+                                    prevSubs.filter(
+                                      (s) => !subsToClear.includes(s),
+                                    ),
+                                  );
+                                  return p.filter((x) => x !== cat);
+                                }
+                                return [...p, cat];
+                              })
+                            }
+                          />
+                          <span className="capitalize">{cat}</span>
+                        </label>
+                        {subs.length > 0 && (
+                          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
+                            {subs.length}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* MOBILE NESTED SUBS */}
+                      {isSelected && subs.length > 0 && (
+                        <div className="ml-9 space-y-4 pt-2">
+                          {subs.map((s) => (
+                            <label
+                              key={s}
+                              className="flex items-center gap-4 text-sm text-gray-600"
+                            >
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 accent-pink-500 rounded"
+                                checked={subCategory.includes(s)}
+                                onChange={() =>
+                                  setSubCategory((p) =>
+                                    p.includes(s)
+                                      ? p.filter((x) => x !== s)
+                                      : [...p, s],
+                                  )
+                                }
+                              />
+                              <span className="capitalize">{s}</span>
+                            </label>
+                          ))}
+                        </div>
                       )}
                     </div>
-
-                    {/* MOBILE NESTED SUBS */}
-                    {isSelected && subs.length > 0 && (
-                      <div className="ml-9 space-y-4 pt-2">
-                        {subs.map((s) => (
-                          <label key={s} className="flex items-center gap-4 text-sm text-gray-600">
-                            <input
-                              type="checkbox"
-                              className="w-4 h-4 accent-pink-500 rounded"
-                              checked={subCategory.includes(s)}
-                              onChange={() =>
-                                setSubCategory((p) =>
-                                  p.includes(s) ? p.filter((x) => x !== s) : [...p, s]
-                                )
-                              }
-                            />
-                            <span className="capitalize">{s}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
 
-            <button
-              onClick={() => setShowFilter(false)}
-              className="mt-10 w-full bg-pink-500 hover:bg-pink-600 text-white py-3.5 rounded-xl font-semibold transition"
-            >
-              Apply Filters
-            </button>
+            <div className="flex gap-4 mt-10">
+              <button
+                onClick={() => {
+                  setCategory([]);
+                  setSubCategory([]);
+                }}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3.5 rounded-xl font-semibold transition"
+              >
+                Clear All
+              </button>
+              <button
+                onClick={() => setShowFilter(false)}
+                className="flex-1 bg-pink-500 hover:bg-pink-600 text-white py-3.5 rounded-xl font-semibold transition"
+              >
+                Apply
+              </button>
+            </div>
           </div>
 
           <div className="flex-1" onClick={() => setShowFilter(false)} />
