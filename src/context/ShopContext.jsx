@@ -1,6 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useEffect, useState, useCallback, useMemo, useRef } from "react";
-import PropTypes from 'prop-types';
+import {
+  createContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
+import PropTypes from "prop-types";
 import { toast } from "react-toastify";
 import { getPackPriceFromVariant } from "../utils/price";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +23,10 @@ export const ShopContextProvider = ({ children }) => {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
-  const [globalDiscount, setGlobalDiscount] = useState({ discountPercentage: 0, isActive: false });
+  const [globalDiscount, setGlobalDiscount] = useState({
+    discountPercentage: 0,
+    isActive: false,
+  });
 
   // ✅ SIDE CART DRAWER STATE
   const [showCartDrawer, setShowCartDrawerState] = useState(false);
@@ -48,7 +58,7 @@ export const ShopContextProvider = ({ children }) => {
           lockUntil: drawerLockUntilRef.current,
           stack: new Error().stack,
         });
-      } catch (e) { }
+      } catch (e) {}
       return;
     }
 
@@ -73,7 +83,7 @@ export const ShopContextProvider = ({ children }) => {
       // debug log for opens/closes
       // eslint-disable-next-line no-console
       console.log("setShowCartDrawer ->", val, { programmatic, now });
-    } catch (e) { }
+    } catch (e) {}
 
     setShowCartDrawerState(val);
   };
@@ -84,12 +94,21 @@ export const ShopContextProvider = ({ children }) => {
 
     const encode = (s) => encodeURIComponent(String(s || ""));
     const decode = (s) => decodeURIComponent(String(s || ""));
-    const makeKey = (pid, color, type, code) => `${pid}::${encode(color)}::${encode(type)}::${encode(code)}`;
+    const makeKey = (pid, color, type, code) =>
+      `${pid}::${encode(color)}::${encode(type)}::${encode(code)}`;
     const parseKey = (key) => {
-      if (!key || typeof key !== "string") return { productId: key, color: "", type: "", code: "" };
-      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "", code: "" };
+      if (!key || typeof key !== "string")
+        return { productId: key, color: "", type: "", code: "" };
+      if (key.indexOf("::") === -1)
+        return { productId: key, color: "", type: "", code: "" };
       const [pid, c, t, cd] = key.split("::");
-      return { productId: pid, color: decode(c), type: decode(t), code: cd !== undefined ? decode(cd) : "" };
+      return {
+        productId: pid,
+        color: decode(c),
+        fabric: decode(t),
+        type: decode(t),
+        code: cd !== undefined ? decode(cd) : "",
+      };
     };
 
     const newCart = {};
@@ -102,10 +121,20 @@ export const ShopContextProvider = ({ children }) => {
         const { productId, color, type, code } = parseKey(rawKey);
 
         // VALUE expected to be { quantity, color, type, code } or similar
-        if (typeof value === "object" && value !== null && typeof value.quantity !== "undefined") {
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          typeof value.quantity !== "undefined"
+        ) {
           const qty = Number(value.quantity || 0);
           if (qty > 0) {
-            newCart[rawKey] = { quantity: qty, color: color || value.color || "", type: type || value.type || "", code: code || value.code || "", productId };
+            newCart[rawKey] = {
+              quantity: qty,
+              color: color || value.color || "",
+              fabric: fabric || value.fabric || type || value.type || "",
+              code: code || value.code || "",
+              productId,
+            };
           }
         } else if (typeof value === "number") {
           const qty = Number(value || 0);
@@ -114,9 +143,18 @@ export const ShopContextProvider = ({ children }) => {
           }
         } else if (typeof value === "object" && value !== null) {
           // treat as size map -> keep as-is under composite key with quantity 1
-          const totalQty = Object.values(value).reduce((s, q) => s + Number(q || 0), 0);
+          const totalQty = Object.values(value).reduce(
+            (s, q) => s + Number(q || 0),
+            0,
+          );
           if (totalQty > 0) {
-            newCart[rawKey] = { quantity: totalQty, color, type, code, productId };
+            newCart[rawKey] = {
+              quantity: totalQty,
+              color,
+              type,
+              code,
+              productId,
+            };
           }
         }
       }
@@ -126,11 +164,26 @@ export const ShopContextProvider = ({ children }) => {
         const pid = rawKey;
 
         // NEW FORMAT: { quantity, color, type, code }
-        if (typeof value === "object" && value !== null && typeof value.quantity !== "undefined") {
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          typeof value.quantity !== "undefined"
+        ) {
           const qty = Number(value.quantity || 0);
           if (qty > 0) {
-            const key = makeKey(pid, value.color || "", value.type || "", value.code || "");
-            newCart[key] = { quantity: qty, color: value.color || "", type: value.type || "", code: value.code || "", productId: pid };
+            const key = makeKey(
+              pid,
+              value.color || "",
+              value.fabric || value.type || "",
+              value.code || "",
+            );
+            newCart[key] = {
+              quantity: qty,
+              color: value.color || "",
+              fabric: value.fabric || value.type || "",
+              code: value.code || "",
+              productId: pid,
+            };
           }
         }
 
@@ -139,16 +192,31 @@ export const ShopContextProvider = ({ children }) => {
           const qty = Number(value || 0);
           if (qty > 0) {
             const key = makeKey(pid, "", "", "");
-            newCart[key] = { quantity: qty, color: "", type: "", code: "", productId: pid };
+            newCart[key] = {
+              quantity: qty,
+              color: "",
+              type: "",
+              code: "",
+              productId: pid,
+            };
           }
         }
 
         // VERY OLD FORMAT: size map
         else if (typeof value === "object" && value !== null) {
-          const totalQty = Object.values(value).reduce((sum, q) => sum + Number(q || 0), 0);
+          const totalQty = Object.values(value).reduce(
+            (sum, q) => sum + Number(q || 0),
+            0,
+          );
           if (totalQty > 0) {
             const key = makeKey(pid, "", "", "");
-            newCart[key] = { quantity: totalQty, color: "", type: "", code: "", productId: pid };
+            newCart[key] = {
+              quantity: totalQty,
+              color: "",
+              type: "",
+              code: "",
+              productId: pid,
+            };
           }
         }
       }
@@ -172,7 +240,9 @@ export const ShopContextProvider = ({ children }) => {
     try {
       const cached = localStorage.getItem("cachedProducts");
       return cached ? JSON.parse(cached) : [];
-    } catch { return []; }
+    } catch {
+      return [];
+    }
   });
   const [token, setToken] = useState(localStorage.getItem("token") || "");
 
@@ -208,10 +278,13 @@ export const ShopContextProvider = ({ children }) => {
   }, [guestWishlist]);
 
   /* ================= FIND VARIANT ================= */
-  const getProductDiscount = useCallback((product) => {
-    if (globalDiscount.isActive) return globalDiscount.discountPercentage;
-    return product?.discount || 0;
-  }, [globalDiscount]);
+  const getProductDiscount = useCallback(
+    (product) => {
+      if (globalDiscount.isActive) return globalDiscount.discountPercentage;
+      return product?.discount || 0;
+    },
+    [globalDiscount],
+  );
 
   const findVariant = (product, color, fabric, code) => {
     if (!product?.variants?.length) return null;
@@ -223,7 +296,7 @@ export const ShopContextProvider = ({ children }) => {
 
     if (color && fabric) {
       const matched = product.variants.find(
-        (v) => v.color === color && v.fabric === fabric
+        (v) => v.color === color && (v.fabric === fabric || v.type === fabric),
       );
       if (matched) return matched;
     }
@@ -248,7 +321,8 @@ export const ShopContextProvider = ({ children }) => {
   /* ================= ADD TO CART ================= */
   const addToCart = async (productId, color = "", fabric = "", code = "") => {
     const encode = (s) => encodeURIComponent(String(s || ""));
-    const makeKey = (pid, c, f, cd) => `${pid}::${encode(c)}::${encode(f)}::${encode(cd)}`;
+    const makeKey = (pid, c, f, cd) =>
+      `${pid}::${encode(c)}::${encode(f)}::${encode(cd)}`;
     const key = makeKey(productId, color, fabric, code);
 
     // Optimistic update — always runs immediately, never awaited
@@ -277,7 +351,7 @@ export const ShopContextProvider = ({ children }) => {
       await axios.post(
         `${backendUrl}/api/cart/add`,
         { itemId: key, color, fabric, code },
-        authHeader
+        authHeader,
       );
       // ⚠️ DO NOT call setCartItems here — the optimistic update is correct.
       // Replacing state from the server response would overwrite other items
@@ -285,7 +359,7 @@ export const ShopContextProvider = ({ children }) => {
     } catch (err) {
       console.log("Cart sync add error:", err);
       toast.error(
-        err?.response?.data?.message || err?.message || "Failed to sync cart"
+        err?.response?.data?.message || err?.message || "Failed to sync cart",
       );
     }
   };
@@ -312,13 +386,13 @@ export const ShopContextProvider = ({ children }) => {
       await axios.post(
         `${backendUrl}/api/cart/update`,
         { itemId: productId, quantity: qty },
-        authHeader
+        authHeader,
       );
       // ⚠️ DO NOT replace state from server response — optimistic update is correct.
     } catch (err) {
       console.log("Cart sync update error:", err);
       toast.error(
-        err?.response?.data?.message || err?.message || "Failed to sync cart"
+        err?.response?.data?.message || err?.message || "Failed to sync cart",
       );
     }
   };
@@ -340,9 +414,9 @@ export const ShopContextProvider = ({ children }) => {
       if (!product) continue;
 
       const qty = Number(cartItems[cartKey]?.quantity || 0);
-      const { color, fabric, code } = cartItems[cartKey] || {};
+      const { color, fabric, type, code } = cartItems[cartKey] || {};
 
-      const variant = findVariant(product, color, fabric, code);
+      const variant = findVariant(product, color, fabric || type, code);
       if (!variant) continue;
 
       const discount = getProductDiscount(product);
@@ -351,44 +425,52 @@ export const ShopContextProvider = ({ children }) => {
       total += qty * packPrice;
     }
 
-    return total;
+    return Math.round(total);
   };
 
   /* ================= ADD PRODUCTS TO CACHE ================= */
   const addProductsToCache = useCallback((newProducts) => {
     if (!newProducts || !newProducts.length) return;
     setProducts((prev) => {
-      const map = new Map(prev.map(p => [p._id, p]));
-      newProducts.forEach(p => map.set(p._id, p));
+      const map = new Map(prev.map((p) => [p._id, p]));
+      newProducts.forEach((p) => map.set(p._id, p));
       const merged = Array.from(map.values());
       // Persist to localStorage so cart products are available instantly on next load
-      try { localStorage.setItem("cachedProducts", JSON.stringify(merged)); } catch { }
+      try {
+        localStorage.setItem("cachedProducts", JSON.stringify(merged));
+      } catch {}
       return merged;
     });
   }, []);
 
   /* ================= LOAD GUEST UNCACHED PRODUCTS ================= */
-  const loadGuestCartProducts = useCallback(async (currentCart) => {
-    try {
-      const productIds = new Set();
-      for (const key in currentCart) {
-        if (currentCart[key].quantity > 0) {
-          const pid = key.includes("::") ? key.split("::")[0] : key;
-          if (pid) productIds.add(pid);
+  const loadGuestCartProducts = useCallback(
+    async (currentCart) => {
+      try {
+        const productIds = new Set();
+        for (const key in currentCart) {
+          if (currentCart[key].quantity > 0) {
+            const pid = key.includes("::") ? key.split("::")[0] : key;
+            if (pid) productIds.add(pid);
+          }
         }
-      }
 
-      const idsToFetch = Array.from(productIds);
-      if (idsToFetch.length > 0) {
-        const { data } = await axios.post(`${backendUrl}/api/product/by-ids`, { ids: idsToFetch });
-        if (data.success && data.products) {
-          addProductsToCache(data.products);
+        const idsToFetch = Array.from(productIds);
+        if (idsToFetch.length > 0) {
+          const { data } = await axios.post(
+            `${backendUrl}/api/product/by-ids`,
+            { ids: idsToFetch },
+          );
+          if (data.success && data.products) {
+            addProductsToCache(data.products);
+          }
         }
+      } catch (err) {
+        console.log("Guest products load error:", err);
       }
-    } catch (err) {
-      console.log("Guest products load error:", err);
-    }
-  }, [backendUrl, addProductsToCache]);
+    },
+    [backendUrl, addProductsToCache],
+  );
 
   /* ================= GET USER CART ================= */
   const getUserCart = useCallback(async () => {
@@ -398,7 +480,7 @@ export const ShopContextProvider = ({ children }) => {
       const { data } = await axios.post(
         `${backendUrl}/api/cart/get`,
         {},
-        authHeader
+        authHeader,
       );
 
       if (data.success) {
@@ -436,7 +518,7 @@ export const ShopContextProvider = ({ children }) => {
       const { data } = await axios.post(
         `${backendUrl}/api/cart/merge`,
         payload,
-        authHeader
+        authHeader,
       );
 
       if (data.success) {
@@ -452,10 +534,12 @@ export const ShopContextProvider = ({ children }) => {
           localStorage.removeItem("cartItems");
           try {
             localStorage.setItem("cartMerged", "1");
-          } catch (e) { }
+          } catch (e) {}
         } else {
           // server returned empty cart after merge — keep local guest cart
-          console.warn("Merge returned empty server cart; keeping local guest cart.");
+          console.warn(
+            "Merge returned empty server cart; keeping local guest cart.",
+          );
         }
       }
     } catch (err) {
@@ -476,7 +560,9 @@ export const ShopContextProvider = ({ children }) => {
       setWishlist(fetchedWishlist);
 
       // Extract populated products and add to cache
-      const wishlistProducts = fetchedWishlist.map(w => w.productId).filter(Boolean);
+      const wishlistProducts = fetchedWishlist
+        .map((w) => w.productId)
+        .filter(Boolean);
       addProductsToCache(wishlistProducts);
     } catch (error) {
       console.error("Wishlist fetch failed", error);
@@ -488,7 +574,7 @@ export const ShopContextProvider = ({ children }) => {
   const addGuestWishlist = (productId, color = "") => {
     setGuestWishlist((prev) => {
       const exists = prev.some(
-        (x) => x.productId === productId && x.color === color
+        (x) => x.productId === productId && x.color === color,
       );
       if (exists) return prev;
       return [...prev, { productId, color }];
@@ -497,7 +583,7 @@ export const ShopContextProvider = ({ children }) => {
 
   const removeGuestWishlist = (productId, color = "") => {
     setGuestWishlist((prev) =>
-      prev.filter((x) => !(x.productId === productId && x.color === color))
+      prev.filter((x) => !(x.productId === productId && x.color === color)),
     );
   };
 
@@ -512,7 +598,12 @@ export const ShopContextProvider = ({ children }) => {
     // Optimistic Update
     const previousWishlist = [...wishlist];
     setWishlist((prev) => {
-      if (prev.some((item) => item.productId?._id === productId && item.color === color)) return prev;
+      if (
+        prev.some(
+          (item) => item.productId?._id === productId && item.color === color,
+        )
+      )
+        return prev;
       // Optimistically we push just ID so it's not fully populated, but background fetch fixes it
       return [...prev, { productId: { _id: productId }, color }];
     });
@@ -521,7 +612,7 @@ export const ShopContextProvider = ({ children }) => {
       await axios.post(
         `${backendUrl}/api/wishlist/add`,
         { productId, color },
-        authHeader
+        authHeader,
       );
       // Fetch fresh data in the background
       getWishlist();
@@ -529,7 +620,9 @@ export const ShopContextProvider = ({ children }) => {
       // Revert optimistic update on failure
       setWishlist(previousWishlist);
       toast.error(
-        err?.response?.data?.message || err?.message || "Failed to add to wishlist"
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to add to wishlist",
       );
     }
   };
@@ -545,14 +638,16 @@ export const ShopContextProvider = ({ children }) => {
     // Optimistic Update
     const previousWishlist = [...wishlist];
     setWishlist((prev) =>
-      prev.filter((item) => !(item.productId?._id === productId && item.color === color))
+      prev.filter(
+        (item) => !(item.productId?._id === productId && item.color === color),
+      ),
     );
 
     try {
       await axios.post(
         `${backendUrl}/api/wishlist/remove`,
         { productId, color },
-        authHeader
+        authHeader,
       );
       // Fetch fresh data in the background
       getWishlist();
@@ -561,8 +656,8 @@ export const ShopContextProvider = ({ children }) => {
       setWishlist(previousWishlist);
       toast.error(
         err?.response?.data?.message ||
-        err?.message ||
-        "Failed to remove from wishlist"
+          err?.message ||
+          "Failed to remove from wishlist",
       );
     }
   };
@@ -572,13 +667,13 @@ export const ShopContextProvider = ({ children }) => {
     // if logged in => check DB wishlist
     if (token) {
       return wishlist.some(
-        (item) => item.productId?._id === productId && item.color === color
+        (item) => item.productId?._id === productId && item.color === color,
       );
     }
 
     // if guest => check local wishlist
     return guestWishlist.some(
-      (item) => item.productId === productId && item.color === color
+      (item) => item.productId === productId && item.color === color,
     );
   };
 
@@ -593,7 +688,7 @@ export const ShopContextProvider = ({ children }) => {
         await axios.post(
           `${backendUrl}/api/wishlist/add`,
           { productId: item.productId, color: item.color },
-          authHeader
+          authHeader,
         );
       }
 
@@ -612,7 +707,9 @@ export const ShopContextProvider = ({ children }) => {
   useEffect(() => {
     if (products.length > 0) {
       setGuestWishlist((prev) => {
-        const updated = prev.filter(item => products.some(p => p._id === item.productId));
+        const updated = prev.filter((item) =>
+          products.some((p) => p._id === item.productId),
+        );
         return updated.length !== prev.length ? updated : prev;
       });
     }
@@ -636,11 +733,14 @@ export const ShopContextProvider = ({ children }) => {
     if (!token) {
       loadGuestCartProducts(cartItems);
 
-      const hwids = guestWishlist.map(w => w.productId);
+      const hwids = guestWishlist.map((w) => w.productId);
       if (hwids.length > 0) {
-        axios.post(`${backendUrl}/api/product/by-ids`, { ids: hwids })
-          .then(res => { if (res.data.success) addProductsToCache(res.data.products); })
-          .catch(() => { });
+        axios
+          .post(`${backendUrl}/api/product/by-ids`, { ids: hwids })
+          .then((res) => {
+            if (res.data.success) addProductsToCache(res.data.products);
+          })
+          .catch(() => {});
       }
     }
   }, [token]);
@@ -660,7 +760,7 @@ export const ShopContextProvider = ({ children }) => {
       const isNewRegistration = localStorage.getItem("isNewRegistration");
 
       if (isNewRegistration) {
-        // If it's a completely new account, they should NOT inherit whatever items 
+        // If it's a completely new account, they should NOT inherit whatever items
         // the previous guest left in the browser. Clear guest data.
         setGuestWishlist([]);
         localStorage.removeItem("guestWishlist");
@@ -705,7 +805,7 @@ export const ShopContextProvider = ({ children }) => {
         let changed = false;
         for (const key in updated) {
           const pid = key.includes("::") ? key.split("::")[0] : key;
-          const exists = products.some(p => p._id === pid);
+          const exists = products.some((p) => p._id === pid);
           if (!exists) {
             delete updated[key];
             changed = true;

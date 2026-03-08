@@ -10,7 +10,6 @@ import Select from "react-select";
 import { Country, State } from "country-state-city";
 import { getPackPriceFromVariant } from "../utils/price";
 
-
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
   const [loading, setLoading] = useState(false);
@@ -29,8 +28,8 @@ const PlaceOrder = () => {
 
   // Debug helper: safely mask token for logs
   const maskToken = (t) => {
-    if (!t) return '<none>';
-    if (t.length <= 12) return t.replace(/.(?=.{4})/g, '*');
+    if (!t) return "<none>";
+    if (t.length <= 12) return t.replace(/.(?=.{4})/g, "*");
     return `${t.slice(0, 6)}...${t.slice(-4)}`;
   };
 
@@ -54,7 +53,7 @@ const PlaceOrder = () => {
       const fetchProfile = async () => {
         try {
           const res = await axios.get(`${backendUrl}/api/user/profile`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (res.data.success) {
             const user = res.data.user;
@@ -80,7 +79,10 @@ const PlaceOrder = () => {
             }
           }
         } catch (error) {
-          console.error("Failed to fetch user profile for auto-population", error);
+          console.error(
+            "Failed to fetch user profile for auto-population",
+            error,
+          );
         }
       };
       fetchProfile();
@@ -152,7 +154,7 @@ const PlaceOrder = () => {
 
   const selectedCountryOption = useMemo(() => {
     const found = Country.getAllCountries().find(
-      (c) => c.name === formData.country
+      (c) => c.name === formData.country,
     );
     if (!found) return null;
     return { label: found.name, value: found.isoCode };
@@ -170,26 +172,38 @@ const PlaceOrder = () => {
   const buildOrderItems = () => {
     const items = [];
     const parseKey = (key) => {
-      if (!key || typeof key !== "string") return { productId: key, color: "", type: "", code: "" };
-      if (key.indexOf("::") === -1) return { productId: key, color: "", type: "", code: "" };
+      if (!key || typeof key !== "string")
+        return { productId: key, color: "", type: "", code: "" };
+      if (key.indexOf("::") === -1)
+        return { productId: key, color: "", type: "", code: "" };
       const [pid, c, t, cd] = key.split("::");
       return {
         productId: pid,
         color: decodeURIComponent(c || ""),
+        fabric: decodeURIComponent(t || ""),
         type: decodeURIComponent(t || ""),
         code: cd !== undefined ? decodeURIComponent(cd) : "",
       };
     };
 
     for (const cartKey in cartItems) {
-      const { productId, color: keyColor, type: keyType, code: keyCode } = parseKey(cartKey);
+      const {
+        productId,
+        color: keyColor,
+        type: keyType,
+        code: keyCode,
+      } = parseKey(cartKey);
       const product = products.find((p) => p._id === productId);
       if (!product) continue;
 
       const cartValue = cartItems[cartKey];
 
       // ✅ CASE 1: cartValue has { quantity, color, type, code }
-      if (cartValue && typeof cartValue === "object" && "quantity" in cartValue) {
+      if (
+        cartValue &&
+        typeof cartValue === "object" &&
+        "quantity" in cartValue
+      ) {
         const qty = Number(cartValue?.quantity || 0);
         if (qty <= 0) continue;
 
@@ -200,7 +214,11 @@ const PlaceOrder = () => {
 
         const matchedVariant =
           (itemCode && product?.variants?.find((v) => v.code === itemCode)) ||
-          product?.variants?.find((v) => v.color === itemColor && v.type === itemType) ||
+          product?.variants?.find(
+            (v) =>
+              v.color === itemColor &&
+              (v.fabric === itemType || v.type === itemType),
+          ) ||
           product?.variants?.[0];
 
         if (!matchedVariant) continue;
@@ -218,14 +236,25 @@ const PlaceOrder = () => {
           name: product.name,
           code: matchedVariant.code || "",
           color: matchedVariant.color || itemColor || "",
-          fabric: matchedVariant.fabric || matchedVariant.type || itemType || "",
+          fabric:
+            matchedVariant.fabric || matchedVariant.type || itemType || "",
           type: matchedVariant.fabric || matchedVariant.type || itemType || "",
           // size must be an Array of strings per the order schema
-          size: Array.isArray(matchedVariant.sizes) && matchedVariant.sizes.length
-            ? matchedVariant.sizes
-            : [matchedVariant.fabric || matchedVariant.type || itemType || ""],
+          size:
+            Array.isArray(matchedVariant.sizes) && matchedVariant.sizes.length
+              ? matchedVariant.sizes
+              : [
+                  matchedVariant.fabric ||
+                    matchedVariant.type ||
+                    itemType ||
+                    "",
+                ],
           quantity: qty,
-          price: getPackPriceFromVariant(matchedVariant, getProductDiscount(product)) || 0,
+          price:
+            getPackPriceFromVariant(
+              matchedVariant,
+              getProductDiscount(product),
+            ) || 0,
           image,
         });
 
@@ -265,7 +294,11 @@ const PlaceOrder = () => {
             type: matchedVariant.fabric || matchedVariant.type || "",
             size: [size],
             quantity: qty,
-            price: getPackPriceFromVariant(matchedVariant, getProductDiscount(product)) || 0,
+            price:
+              getPackPriceFromVariant(
+                matchedVariant,
+                getProductDiscount(product),
+              ) || 0,
             image,
           });
         }
@@ -291,8 +324,8 @@ const PlaceOrder = () => {
     }
 
     if (!token) {
-      alert('Please login to place an order');
-      navigate('/login');
+      alert("Please login to place an order");
+      navigate("/login");
       return;
     }
 
@@ -322,13 +355,22 @@ const PlaceOrder = () => {
 
       // ================= COD =================
       if (method === "cod") {
-        console.log('[placeOrder] COD submit', { tokenPresent: !!token, token: maskToken(token), items: items.length, amount: orderData.amount });
-        const res = await axios.post(`${backendUrl}/api/order/place`, orderData, {
-          headers: { Authorization: `Bearer ${token}` },
+        console.log("[placeOrder] COD submit", {
+          tokenPresent: !!token,
+          token: maskToken(token),
+          items: items.length,
+          amount: orderData.amount,
         });
+        const res = await axios.post(
+          `${backendUrl}/api/order/place`,
+          orderData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
 
         if (res.data.success) {
-          console.log('[placeOrder] COD success', res.data);
+          console.log("[placeOrder] COD success", res.data);
           setCartItems({});
           localStorage.removeItem("cartItems");
           navigate("/order", { replace: true });
@@ -337,13 +379,21 @@ const PlaceOrder = () => {
 
       // ================= WHATSAPP =================
       if (method === "whatsapp") {
-        console.log('[placeOrder] WhatsApp order submit', { tokenPresent: !!token, items: items.length, amount: orderData.amount });
-        const res = await axios.post(`${backendUrl}/api/order/whatsapp`, orderData, {
-          headers: { Authorization: `Bearer ${token}` },
+        console.log("[placeOrder] WhatsApp order submit", {
+          tokenPresent: !!token,
+          items: items.length,
+          amount: orderData.amount,
         });
+        const res = await axios.post(
+          `${backendUrl}/api/order/whatsapp`,
+          orderData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
 
         if (res.data.success) {
-          console.log('[placeOrder] WhatsApp order success', res.data);
+          console.log("[placeOrder] WhatsApp order success", res.data);
           setCartItems({});
           localStorage.removeItem("cartItems");
 
@@ -369,8 +419,8 @@ const PlaceOrder = () => {
             const productUrl = `${baseUrl}/product/${item.productId}`;
             msg += `Product: *${item.name}*\n`;
             msg += `Product Link: ${productUrl}\n\n`;
-            msg += `Variant: ${item.color || ''} ${item.type || item.fabric || ''}\n`;
-            msg += `Size: ${item.size.join(', ')}\n`;
+            msg += `Variant: ${item.color || ""} ${item.type || item.fabric || ""}\n`;
+            msg += `Size: ${item.size.join(", ")}\n`;
             msg += `Quantity: ${item.quantity}\n`;
             msg += `Price: ₹${item.price}\n`;
 
@@ -387,8 +437,13 @@ const PlaceOrder = () => {
           msg += `Thank you for shopping with *Fabnoor*!`;
 
           // Open WhatsApp with a confirmation message to seller
-          const adminPhone = (import.meta.env.VITE_WHATSAPP_NUMBER || "919979624404").replace(/^\+/, "");
-          window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, "_blank");
+          const adminPhone = (
+            import.meta.env.VITE_WHATSAPP_NUMBER || "919979624404"
+          ).replace(/^\+/, "");
+          window.open(
+            `https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`,
+            "_blank",
+          );
 
           navigate("/order", { replace: true });
         }
@@ -396,21 +451,26 @@ const PlaceOrder = () => {
 
       // ================= RAZORPAY =================
       if (method === "razorpay") {
-        console.log('[placeOrder] Razorpay create order', { tokenPresent: !!token, token: maskToken(token), amount: orderData.amount });
+        console.log("[placeOrder] Razorpay create order", {
+          tokenPresent: !!token,
+          token: maskToken(token),
+          amount: orderData.amount,
+        });
         const res = await axios.post(
           `${backendUrl}/api/order/razorpay`,
           orderData,
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
 
         if (res.data.success) {
-          const rpOrder = res.data.razorpayOrder || res.data.order || res.data.razorpay;
+          const rpOrder =
+            res.data.razorpayOrder || res.data.order || res.data.razorpay;
           if (!rpOrder) {
-            throw new Error('Razorpay order not returned by server');
+            throw new Error("Razorpay order not returned by server");
           }
-          console.log('[placeOrder] Razorpay order created', rpOrder);
+          console.log("[placeOrder] Razorpay order created", rpOrder);
 
           const options = {
             key: import.meta.env.VITE_RAZORPAY_KEY_ID,
@@ -419,7 +479,7 @@ const PlaceOrder = () => {
             order_id: rpOrder.id,
 
             handler: async (response) => {
-              console.log('[placeOrder] Razorpay handler response', response);
+              console.log("[placeOrder] Razorpay handler response", response);
               const verify = await axios.post(
                 `${backendUrl}/api/order/verifyRazorpay`,
                 {
@@ -427,11 +487,14 @@ const PlaceOrder = () => {
                 },
                 {
                   headers: { Authorization: `Bearer ${token}` },
-                }
+                },
               );
 
               if (verify.data.success) {
-                console.log('[placeOrder] Razorpay verify success', verify.data);
+                console.log(
+                  "[placeOrder] Razorpay verify success",
+                  verify.data,
+                );
                 setCartItems({});
                 localStorage.removeItem("cartItems");
                 navigate("/order", { replace: true });
@@ -444,13 +507,17 @@ const PlaceOrder = () => {
       }
     } catch (error) {
       console.error("Order error:", error, error?.response?.data);
-      const msg = error?.response?.data?.message || error.message || "Order failed";
+      const msg =
+        error?.response?.data?.message || error.message || "Order failed";
 
       // If unauthorized, direct user to login
       if (error?.response?.status === 401) {
-        alert('Your session has expired. Please login again.');
-        navigate('/login');
-      } else if (error?.response?.status === 400 && msg.includes("Price mismatch")) {
+        alert("Your session has expired. Please login again.");
+        navigate("/login");
+      } else if (
+        error?.response?.status === 400 &&
+        msg.includes("Price mismatch")
+      ) {
         // Handle backend price validation failure
         // The admin updated the product price while the user was interacting with the cart
         alert(msg);
@@ -582,7 +649,11 @@ const PlaceOrder = () => {
                         country: countryName,
                         state: "",
                       }));
-                      setErrors((prev) => ({ ...prev, country: "", state: "" }));
+                      setErrors((prev) => ({
+                        ...prev,
+                        country: "",
+                        state: "",
+                      }));
                     }}
                     placeholder="Search & Select Country"
                     isSearchable
@@ -678,34 +749,47 @@ const PlaceOrder = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      toast.error("Razorpay is not available for wholesale users. Please choose WhatsApp.", { autoClose: 3000 });
+                      toast.error(
+                        "Razorpay is not available for wholesale users. Please choose WhatsApp.",
+                        { autoClose: 3000 },
+                      );
                       // Intentionally NOT setting method to "razorpay"
                     }}
                     className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-start px-6 gap-4 bg-gray-50 opacity-60 cursor-not-allowed border-gray-200`}
                     title="Not available for wholesale users"
                   >
-                    <div className="min-w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center opacity-60">
-                    </div>
+                    <div className="min-w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center opacity-60"></div>
                     <img
                       className="h-6 opacity-60 grayscale"
                       src={assets.razorpay_logo}
                       alt="Razorpay"
                     />
-                    <span className="text-gray-500 font-medium text-sm">Unavailable</span>
+                    <span className="text-gray-500 font-medium text-sm">
+                      Unavailable
+                    </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setMethod("whatsapp")}
-                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-start px-6 gap-4 font-semibold ${method === "whatsapp"
-                      ? "border-[#25D366] bg-green-50 text-[#128C7E]"
-                      : "border-gray-200 text-gray-700 hover:border-green-400"
-                      }`}
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-start px-6 gap-4 font-semibold ${
+                      method === "whatsapp"
+                        ? "border-[#25D366] bg-green-50 text-[#128C7E]"
+                        : "border-gray-200 text-gray-700 hover:border-green-400"
+                    }`}
                   >
-                    <div className={`min-w-5 h-5 border-2 rounded-full flex items-center justify-center ${method === 'whatsapp' ? 'border-[#128C7E]' : 'border-gray-300'}`}>
-                      {method === 'whatsapp' && <div className="w-2.5 h-2.5 bg-[#128C7E] rounded-full"></div>}
+                    <div
+                      className={`min-w-5 h-5 border-2 rounded-full flex items-center justify-center ${method === "whatsapp" ? "border-[#128C7E]" : "border-gray-300"}`}
+                    >
+                      {method === "whatsapp" && (
+                        <div className="w-2.5 h-2.5 bg-[#128C7E] rounded-full"></div>
+                      )}
                     </div>
-                    <svg className="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="w-6 h-6 shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.02-.956-.263-.089-.454-.134-.644.15-.19.283-.735.956-.9 1.144-.165.188-.331.21-.628.061-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.644-1.554-.882-2.126-.231-.555-.465-.48-.644-.488-.166-.008-.356-.01-.546-.01-.19 0-.5-.072-.761.21-.261.282-1.001.978-1.001 2.388 0 1.41 1.026 2.774 1.17 2.962.143.188 2.019 3.084 4.889 4.326.682.296 1.214.473 1.629.605.685.217 1.307.186 1.802.113.551-.082 1.758-.719 2.007-1.413.25-.694.25-1.289.175-1.413-.075-.124-.271-.197-.568-.346z" />
                       <path d="M12.004 0C5.378 0 0 5.378 0 12.004c0 2.112.547 4.178 1.585 6.002L0 24l6.166-1.618a11.94 11.94 0 0 0 5.838 1.518c6.626 0 12.004-5.378 12.004-12.004S18.63 0 12.004 0zm0 21.944a9.9 9.9 0 0 1-5.056-1.388l-.362-.216-3.758.985 1.002-3.663-.238-.378a9.904 9.904 0 0 1-1.521-5.28c0-5.478 4.456-9.934 9.934-9.934 5.478 0 9.934 4.456 9.934 9.934 0 5.478-4.456 9.934-9.934 9.934z" />
                     </svg>
@@ -715,13 +799,18 @@ const PlaceOrder = () => {
                   <button
                     type="button"
                     onClick={() => setMethod("cod")}
-                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-start px-6 gap-4 font-semibold ${method === "cod"
-                      ? "border-pink-500 bg-pink-50 text-pink-600"
-                      : "border-gray-200 text-gray-700 hover:border-pink-300"
-                      }`}
+                    className={`w-full p-4 border-2 rounded-xl transition-all duration-300 flex items-center justify-start px-6 gap-4 font-semibold ${
+                      method === "cod"
+                        ? "border-pink-500 bg-pink-50 text-pink-600"
+                        : "border-gray-200 text-gray-700 hover:border-pink-300"
+                    }`}
                   >
-                    <div className={`min-w-5 h-5 border-2 rounded-full flex items-center justify-center ${method === 'cod' ? 'border-pink-500' : 'border-gray-300'}`}>
-                      {method === 'cod' && <div className="w-2.5 h-2.5 bg-pink-500 rounded-full"></div>}
+                    <div
+                      className={`min-w-5 h-5 border-2 rounded-full flex items-center justify-center ${method === "cod" ? "border-pink-500" : "border-gray-300"}`}
+                    >
+                      {method === "cod" && (
+                        <div className="w-2.5 h-2.5 bg-pink-500 rounded-full"></div>
+                      )}
                     </div>
                     CASH ON DELIVERY
                   </button>
