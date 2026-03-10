@@ -317,88 +317,87 @@ const Collection = () => {
 
           {/* GRID */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 md:gap-6">
-            {productsList.map((item) => {
-              const discount = getProductDiscount(item);
-              const piecePriceDiscounted = getPerPiecePrice(item, discount);
-              const piecePriceOriginal = getPerPiecePrice(item);
-              const packPriceDiscounted = getPackPrice(item, discount);
-              const packPriceOriginal = getPackPrice(item);
+            {productsList.flatMap((item) =>
+              (item.variants || []).map((variant) => {
+                const discount = getProductDiscount(item);
+                const piecePriceDiscounted = getPerPiecePrice(item, discount);
+                const piecePriceOriginal = getPerPiecePrice(item);
+                const packPriceDiscounted = getPackPrice(item, discount);
+                const packPriceOriginal = getPackPrice(item);
+                const variantImage = variant.images?.[0] || assets.placeholder_image;
+                const linkTo = `/product/${item._id}?color=${encodeURIComponent(variant.color || "")}&code=${encodeURIComponent(variant.code || "")}`;
 
-              return (
-                <Link
-                  key={item._id}
-                  to={`/product/${item._id}`}
-                  className="group relative block"
-                >
-                  {/* ── Image Container ── */}
-                  <div className="relative rounded-2xl overflow-hidden bg-gray-50 shadow-sm group-hover:shadow-lg transition-shadow duration-400 border border-gray-100 group-hover:border-pink-100">
-                    {/* Image */}
-                    <div className="w-full aspect-[3/4] overflow-hidden">
-                      <img
-                        src={getImage(item)}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                      />
-                    </div>
-
-                    {/* Dark gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
-
-                    {/* Discount badge */}
-                    {discount > 0 && (
-                      <div className="absolute top-2.5 left-2.5 z-10 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[9px] md:text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md uppercase tracking-wide">
-                        {discount}% OFF
+                return (
+                  <Link
+                    key={`${item._id}-${variant.code || variant.color}`}
+                    to={linkTo}
+                    className="group relative block"
+                  >
+                    {/* ── Image Container ── */}
+                    <div className="relative rounded-2xl overflow-hidden bg-gray-50 shadow-sm group-hover:shadow-lg transition-shadow duration-400 border border-gray-100 group-hover:border-pink-100">
+                      {/* Image */}
+                      <div className="w-full aspect-[3/4] overflow-hidden">
+                        <img
+                          src={variantImage}
+                          alt={`${item.name} - ${variant.color}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                        />
                       </div>
-                    )}
 
-                    {/* Hover CTA */}
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10 w-[85%]">
-                      <span className="block text-center text-[11px] md:text-xs font-semibold text-white bg-pink-500/90 backdrop-blur-sm py-2 rounded-full shadow-lg tracking-wide">
-                        View Collection
-                      </span>
-                    </div>
-                  </div>
+                      {/* Dark gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
 
-                  {/* ── Info Section ── */}
-                  <div className="mt-3 px-0.5">
-                    {/* Product Name */}
-                    <h3 className="text-[11px] md:text-sm font-semibold text-gray-800 truncate group-hover:text-rose-500 transition-colors duration-200 mb-1.5 leading-tight">
-                      {item.name}
-                    </h3>
-
-                    {/* Price Row */}
-                    <div className="flex items-baseline gap-1.5 flex-wrap">
-                      <span className="text-sm md:text-base font-bold text-rose-500 leading-none">
-                        ₹{formatNumber(piecePriceDiscounted)}
-                        <span className="text-[10px] md:text-xs font-medium text-rose-400 ml-0.5">
-                          /pc
-                        </span>
-                      </span>
+                      {/* Discount badge */}
                       {discount > 0 && (
-                        <span className="text-[10px] text-gray-400 line-through">
-                          ₹{formatNumber(piecePriceOriginal)}
-                        </span>
+                        <div className="absolute top-2.5 left-2.5 z-10 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[9px] md:text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md uppercase tracking-wide">
+                          {discount}% OFF
+                        </div>
                       )}
+
+                      {/* Color badge */}
+                      {variant.color && (
+                        <div className="absolute top-2.5 right-2.5 z-10 bg-black/50 backdrop-blur-sm text-white text-[9px] md:text-[10px] font-medium px-2 py-0.5 rounded-full">
+                          {variant.color}
+                        </div>
+                      )}
+
+                      {/* Hover CTA */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10 w-[85%]">
+                        <span className="block text-center text-[11px] md:text-xs font-semibold text-white bg-pink-500/90 backdrop-blur-sm py-2 rounded-full shadow-lg tracking-wide">
+                          View Collection
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Set price */}
-                    <div className="flex items-center gap-1 mt-1">
-                      <span className="text-[10px] md:text-[11px] text-gray-400">
-                        Set:{" "}
-                        <span className="text-gray-500 font-medium">
-                          ₹{formatNumber(packPriceDiscounted)}
+                    {/* ── Info Section ── */}
+                    <div className="mt-3 px-0.5">
+                      <h3 className="text-[11px] md:text-sm font-semibold text-gray-800 truncate group-hover:text-rose-500 transition-colors duration-200 mb-1.5 leading-tight">
+                        {item.name}
+                      </h3>
+
+                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                        <span className="text-sm md:text-base font-bold text-rose-500 leading-none">
+                          ₹{formatNumber(piecePriceDiscounted)}
+                          <span className="text-[10px] md:text-xs font-medium text-rose-400 ml-0.5">/pc</span>
                         </span>
-                      </span>
-                      {discount > 0 && (
-                        <span className="text-[10px] text-gray-300 line-through">
-                          ₹{formatNumber(packPriceOriginal)}
+                        {discount > 0 && (
+                          <span className="text-[10px] text-gray-400 line-through">₹{formatNumber(piecePriceOriginal)}</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="text-[10px] md:text-[11px] text-gray-400">
+                          Set: <span className="text-gray-500 font-medium">₹{formatNumber(packPriceDiscounted)}</span>
                         </span>
-                      )}
+                        {discount > 0 && (
+                          <span className="text-[10px] text-gray-300 line-through">₹{formatNumber(packPriceOriginal)}</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              );
-            })}
+                  </Link>
+                );
+              })
+            )}
           </div>
 
           {/* EMPTY STATE */}

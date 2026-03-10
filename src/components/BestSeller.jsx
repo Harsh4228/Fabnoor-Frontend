@@ -50,10 +50,14 @@ const BestSeller = () => {
       {/* Products Grid */}
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
-          {bestSellers.map((item) => (
+          {bestSellers.flatMap((item) =>
+            (item.variants || []).map((variant) => {
+              const variantImage = variant.images?.[0] || assets.placeholder_image;
+              const linkTo = `/product/${item._id}?color=${encodeURIComponent(variant.color || "")}&code=${encodeURIComponent(variant.code || "")}`;
+              return (
             <Link
-              key={item._id}
-              to={`/product/${item._id}`}
+              key={`${item._id}-${variant.code || variant.color}`}
+              to={linkTo}
               className="group"
             >
               {/* Product Card */}
@@ -70,23 +74,18 @@ const BestSeller = () => {
                   )}
                 </div>
 
-                {/* Wishlist Button */}
-                {/* <button
-                  onClick={(e) => toggleWishlist(item._id, e)}
-                  className="absolute top-2 md:top-3 right-2 md:right-3 z-10 bg-white/90 backdrop-blur-sm p-1.5 md:p-2 rounded-full hover:bg-rose-500 hover:text-white transition-all shadow-md group/wishlist"
-                >
-                  {wishlist[item._id] ? (
-                    <FaHeart className="w-3 h-3 md:w-4 md:h-4 text-rose-500 group-hover/wishlist:text-white" />
-                  ) : (
-                    <FaRegHeart className="w-3 h-3 md:w-4 md:h-4" />
-                  )}
-                </button> */}
+                {/* Color badge */}
+                {variant.color && (
+                  <div className="absolute top-2 md:top-3 right-2 md:right-3 z-10 bg-black/50 backdrop-blur-sm text-white text-[9px] md:text-[10px] font-medium px-2 py-0.5 rounded-full">
+                    {variant.color}
+                  </div>
+                )}
 
                 {/* Product Image */}
-                <div className="w-full h-48 md:h-56 overflow-hidden">
+                <div className="w-full aspect-[3/4] overflow-hidden">
                   <img
-                    src={getImage(item)}
-                    alt={item.name}
+                    src={variantImage}
+                    alt={`${item.name} - ${variant.color}`}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
@@ -121,7 +120,9 @@ const BestSeller = () => {
                 </div>
               </div>
             </Link>
-          ))}
+              );
+            })
+          )}
         </div>
 
         {/* View All Button */}

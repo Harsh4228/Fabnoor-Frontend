@@ -62,23 +62,34 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
         {/* GRID */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {related.length > 0 ? (
-            related.map((item) => (
+            related.flatMap((item) =>
+              (item.variants || []).map((variant) => {
+                const variantImage = variant.images?.[0] || assets.logo;
+                const linkTo = `/product/${item._id}?color=${encodeURIComponent(variant.color || "")}&code=${encodeURIComponent(variant.code || "")}`;
+                return (
               <Link
-                key={item._id}
-                to={`/product/${item._id}`}
+                key={`${item._id}-${variant.code || variant.color}`}
+                to={linkTo}
                 onClick={handleClick}
                 className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100"
               >
                 {/* IMAGE */}
-                <div className="relative w-full h-52 bg-gradient-to-br from-pink-50 to-rose-50 overflow-hidden">
+                <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-pink-50 to-rose-50 overflow-hidden">
                   <img
-                    src={getImage(item)}
-                    alt={item.name}
+                    src={variantImage}
+                    alt={`${item.name} - ${variant.color}`}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     onError={(e) => {
                       e.target.src = assets.placeholder_image;
                     }}
                   />
+
+                  {/* Color badge */}
+                  {variant.color && (
+                    <div className="absolute top-2 right-2 z-10 bg-black/50 backdrop-blur-sm text-white text-[9px] font-medium px-2 py-0.5 rounded-full">
+                      {variant.color}
+                    </div>
+                  )}
 
                   {/* Hover Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -108,7 +119,9 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
                   </div>
                 </div>
               </Link>
-            ))
+                );
+              })
+            )
           ) : (
             <div className="col-span-5 text-center py-12">
               <p className="text-gray-500 text-lg">No related products found.</p>

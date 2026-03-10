@@ -1,5 +1,5 @@
-﻿import { useContext, useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useContext, useEffect, useState, useRef } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 import RelatedProducts from "../components/RelatedProducts";
@@ -48,6 +48,7 @@ const StarRating = ({ rating, size = "text-base" }) => (
 
 const Product = () => {
   const { productId } = useParams();
+  const [searchParams] = useSearchParams();
 
   const {
     addToCart,
@@ -91,9 +92,16 @@ const Product = () => {
           const product = data.product;
           if (product && product.variants?.length) {
             setProductData(product);
-            setSelectedVariant(product.variants[0]);
+            // Auto-select variant from URL params (?color=&code=)
+            const urlCode = searchParams.get("code");
+            const urlColor = searchParams.get("color");
+            const matched =
+              (urlCode && product.variants.find((v) => v.code === urlCode)) ||
+              (urlColor && product.variants.find((v) => v.color === urlColor)) ||
+              product.variants[0];
+            setSelectedVariant(matched);
             setSelectedImageIndex(0);
-            setSelectedImage(product.variants[0].images?.[0] || "");
+            setSelectedImage(matched.images?.[0] || "");
             if (addProductsToCache) addProductsToCache([product]);
           }
         }
