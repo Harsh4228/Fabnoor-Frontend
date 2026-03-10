@@ -14,7 +14,7 @@ const CategoryShowcase = () => {
       try {
         // Fetch a limited amount of products to extract categories
         const { data } = await axios.get(`${backendUrl}/api/product/list`, {
-          params: { limit: 50 }
+          params: { limit: 50 },
         });
         if (data.success && data.products) {
           setProducts(data.products);
@@ -65,7 +65,7 @@ const CategoryShowcase = () => {
             <div
               key={cat.name}
               onClick={() => navigate(`/collection?category=${cat.name}`)}
-              className="min-w-[64px] md:min-w-[80px] text-center cursor-pointer group"
+              className="min-w-[80px] md:min-w-[96px] text-center cursor-pointer group"
             >
               {/* Image */}
               <div className="relative mx-auto mb-2">
@@ -73,7 +73,7 @@ const CategoryShowcase = () => {
                 <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-rose-200 to-pink-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 scale-105 blur-md" />
 
                 {/* Small Square Card */}
-                <div className="relative w-16 h-16 md:w-20 md:h-20 mx-auto rounded-md overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 group-hover:border-rose-300 transition-all duration-300 shadow-sm group-hover:shadow-md">
+                <div className="relative w-20 md:w-24 mx-auto rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 group-hover:border-rose-300 transition-all duration-300 shadow-sm group-hover:shadow-md aspect-[3/4]">
                   <img
                     src={cat.image}
                     alt={cat.name}

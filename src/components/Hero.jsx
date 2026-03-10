@@ -1,5 +1,5 @@
-import { assets } from '../assets/assets';
-import { useEffect, useState, useRef } from 'react';
+import { assets } from "../assets/assets";
+import { useEffect, useState, useRef } from "react";
 
 const Hero = ({ interval = 4000 }) => {
   const slides = [assets.Hero, assets.Hero, assets.Hero];
@@ -44,7 +44,8 @@ const Hero = ({ interval = 4000 }) => {
           if (touchStartX.current == null || endX == null) return;
           const diff = touchStartX.current - endX;
           if (Math.abs(diff) > 40) {
-            if (diff > 0) next(); else prev();
+            if (diff > 0) next();
+            else prev();
           }
           touchStartX.current = null;
         }}
@@ -54,8 +55,9 @@ const Hero = ({ interval = 4000 }) => {
             key={i}
             src={src}
             alt={`hero-${i}`}
-            className={`absolute inset-0 w-full h-full object-contain md:object-cover transition-opacity duration-800 ${i === index ? 'opacity-100' : 'opacity-0'
-              }`}
+            className={`absolute inset-0 w-full h-full object-contain md:object-cover md:object-top transition-opacity duration-800 ${
+              i === index ? "opacity-100" : "opacity-0"
+            }`}
           />
         ))}
 
@@ -81,8 +83,9 @@ const Hero = ({ interval = 4000 }) => {
             <button
               key={i}
               onClick={() => setIndex(i)}
-              className={`w-2 h-2 rounded-full transition-colors ${i === index ? 'bg-white' : 'bg-white/40'
-                }`}
+              className={`w-2 h-2 rounded-full transition-colors ${
+                i === index ? "bg-white" : "bg-white/40"
+              }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}

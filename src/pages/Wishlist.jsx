@@ -58,7 +58,7 @@ const Wishlist = () => {
   // ✅ WISHLIST ITEMS UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-16">
-      <div className="container mx-auto px-4 md:px-8">
+      <div>
         <div className="mb-8">
           <Title text1="MY" text2="WISHLIST" />
         </div>

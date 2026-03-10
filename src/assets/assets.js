@@ -25,6 +25,7 @@ export const assets = {
     logo,
     nitesh_img,
     Hero,
+    placeholder_image: logo,
     cart_icon,
     dropdown_icon,
     exchange_icon,

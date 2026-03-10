@@ -546,7 +546,7 @@ const PlaceOrder = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 pt-5 sm:pt-14">
-      <div className="container mx-auto px-4 md:px-8">
+      <div>
         {/* ✅ FIX: wrap inside FORM so submit works properly */}
         <form
           onSubmit={onSubmitHandler}

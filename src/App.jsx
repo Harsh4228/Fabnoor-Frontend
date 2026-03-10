@@ -22,7 +22,6 @@ import Profile from "./pages/Profile";
 import Wishlist from "./pages/Wishlist";
 import CartDrawer from "./components/CartDrawer";
 
-
 // 🔥 NEW STATIC PAGES
 import Delivery from "./pages/Delivery";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -37,9 +36,9 @@ const App = () => {
       <ToastContainer />
 
       <Navbar />
-      <CartDrawer />  
+      <CartDrawer />
 
-      <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
+      <div className="w-full px-4 sm:px-6">
         <SearchBar />
 
         <Routes>

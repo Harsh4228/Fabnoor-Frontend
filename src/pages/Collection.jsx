@@ -139,7 +139,7 @@ const Collection = () => {
   }, []);
 
   return (
-    <div className="pt-10 border-t px-4 md:px-10 min-h-screen">
+    <div className="pt-10 border-t min-h-screen">
       {/* MOBILE TOP BAR */}
       <div className="flex items-center justify-between mb-6 sm:hidden">
         <button
@@ -316,61 +316,89 @@ const Collection = () => {
           </div>
 
           {/* GRID */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-            {productsList.map((item) => (
-              <Link
-                key={item._id}
-                to={`/product/${item._id}`}
-                className="group relative block"
-              >
-                <div className="relative rounded-2xl overflow-hidden bg-gray-50 mb-3 shadow hover:shadow-xl transition border border-transparent hover:border-pink-100">
-                  <div className="w-full h-48 md:h-56 overflow-hidden">
-                    <img
-                      src={getImage(item)}
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  {getProductDiscount(item) > 0 && (
-                    <div className="absolute top-3 left-3 z-10 bg-red-600 text-white text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow-md uppercase">
-                      {getProductDiscount(item)}% OFF
-                    </div>
-                  )}
-                </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 md:gap-6">
+            {productsList.map((item) => {
+              const discount = getProductDiscount(item);
+              const piecePriceDiscounted = getPerPiecePrice(item, discount);
+              const piecePriceOriginal = getPerPiecePrice(item);
+              const packPriceDiscounted = getPackPrice(item, discount);
+              const packPriceOriginal = getPackPrice(item);
 
-                <div className="text-center px-1">
-                  <h3 className="text-xs md:text-sm font-medium text-gray-800 mb-1 truncate group-hover:text-rose-500 transition-colors">
-                    {item.name}
-                  </h3>
-                  <div className="text-sm md:text-base font-serif text-rose-500">
-                    <span className="font-semibold">
-                      ₹
-                      {formatNumber(
-                        getPerPiecePrice(item, getProductDiscount(item)),
-                      )}
-                      /pc
-                    </span>
-                    {getProductDiscount(item) > 0 && (
-                      <span className="text-[10px] text-gray-400 line-through ml-2">
-                        ₹{formatNumber(getPerPiecePrice(item))}
-                      </span>
+              return (
+                <Link
+                  key={item._id}
+                  to={`/product/${item._id}`}
+                  className="group relative block"
+                >
+                  {/* ── Image Container ── */}
+                  <div className="relative rounded-2xl overflow-hidden bg-gray-50 shadow-sm group-hover:shadow-lg transition-shadow duration-400 border border-gray-100 group-hover:border-pink-100">
+                    {/* Image */}
+                    <div className="w-full aspect-[3/4] overflow-hidden">
+                      <img
+                        src={getImage(item)}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      />
+                    </div>
+
+                    {/* Dark gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+
+                    {/* Discount badge */}
+                    {discount > 0 && (
+                      <div className="absolute top-2.5 left-2.5 z-10 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[9px] md:text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md uppercase tracking-wide">
+                        {discount}% OFF
+                      </div>
                     )}
-                    <div className="text-[10px] md:text-xs text-gray-400 mt-0.5">
-                      (Full Set) ₹
-                      {formatNumber(
-                        getPackPrice(item, getProductDiscount(item)),
+
+                    {/* Hover CTA */}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10 w-[85%]">
+                      <span className="block text-center text-[11px] md:text-xs font-semibold text-white bg-pink-500/90 backdrop-blur-sm py-2 rounded-full shadow-lg tracking-wide">
+                        View Collection
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* ── Info Section ── */}
+                  <div className="mt-3 px-0.5">
+                    {/* Product Name */}
+                    <h3 className="text-[11px] md:text-sm font-semibold text-gray-800 truncate group-hover:text-rose-500 transition-colors duration-200 mb-1.5 leading-tight">
+                      {item.name}
+                    </h3>
+
+                    {/* Price Row */}
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <span className="text-sm md:text-base font-bold text-rose-500 leading-none">
+                        ₹{formatNumber(piecePriceDiscounted)}
+                        <span className="text-[10px] md:text-xs font-medium text-rose-400 ml-0.5">
+                          /pc
+                        </span>
+                      </span>
+                      {discount > 0 && (
+                        <span className="text-[10px] text-gray-400 line-through">
+                          ₹{formatNumber(piecePriceOriginal)}
+                        </span>
                       )}
-                      {getProductDiscount(item) > 0 && (
-                        <span className="text-[10px] text-gray-300 line-through ml-1">
-                          ₹{formatNumber(getPackPrice(item))}
+                    </div>
+
+                    {/* Set price */}
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-[10px] md:text-[11px] text-gray-400">
+                        Set:{" "}
+                        <span className="text-gray-500 font-medium">
+                          ₹{formatNumber(packPriceDiscounted)}
+                        </span>
+                      </span>
+                      {discount > 0 && (
+                        <span className="text-[10px] text-gray-300 line-through">
+                          ₹{formatNumber(packPriceOriginal)}
                         </span>
                       )}
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
 
           {/* EMPTY STATE */}
