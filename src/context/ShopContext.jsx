@@ -821,6 +821,42 @@ export const ShopContextProvider = ({ children }) => {
     if (token) mergeGuestWishlistToDB();
   }, [token, mergeGuestWishlistToDB]);
 
+  /* ================= AUTO-LOGOUT ON 401 (TOKEN EXPIRED) ================= */
+  useEffect(() => {
+    const interceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error?.response?.status === 401) {
+          const currentToken = localStorage.getItem("token");
+          // Only auto-logout if the user IS logged in (avoid loop on login page)
+          if (currentToken) {
+            // Clear auth state
+            setToken("");
+            localStorage.removeItem("token");
+            // Clear user-specific data
+            setCartItems({});
+            localStorage.removeItem("cartItems");
+            localStorage.removeItem("cachedProducts");
+            setProducts([]);
+            setWishlist([]);
+            // Notify user
+            toast.info("Your session has expired. Please login again.", {
+              toastId: "session-expired",
+            });
+            // Redirect to login
+            navigate("/login");
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptorId);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
+
   return (
     <ShopContext.Provider
       value={{
