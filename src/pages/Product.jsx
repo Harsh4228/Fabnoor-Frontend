@@ -325,7 +325,7 @@ const Product = () => {
                     e.stopPropagation();
                     handleWishlist();
                   }}
-                  className="absolute top-3 right-3 z-10 w-9 h-9 bg-white/90 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                  className="absolute bottom-3 right-3 z-10 w-9 h-9 bg-white/90 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
                 >
                   {liked ? (
                     <FaHeart className="text-pink-500 text-base" />

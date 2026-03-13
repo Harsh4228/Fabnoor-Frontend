@@ -69,7 +69,7 @@ const ProductCard = ({ item, variant, tag }) => {
                 {/* Wishlist Button */}
                 <button
                     onClick={handleWishlist}
-                    className="absolute top-2 right-2 z-20 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform duration-300"
+                    className="absolute bottom-2 right-2 z-20 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform duration-300"
                 >
                     <svg
                         className={`w-4 h-4 ${isWished ? 'fill-pink-500 stroke-pink-500' : 'fill-none stroke-gray-600'}`}
