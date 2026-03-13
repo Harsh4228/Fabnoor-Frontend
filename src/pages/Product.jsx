@@ -442,9 +442,19 @@ const Product = () => {
 
             {/* ── RIGHT: INFO ── */}
             <div className="flex-1 min-w-0 flex flex-col">
-              {/* Title */}
-              <p className="text-[11px] tracking-[0.18em] text-pink-500 font-semibold uppercase mb-1">
-                Fabnoor Collection
+              {/* Categories / Breadcrumb */}
+              <p className="text-[10px] tracking-[0.1em] text-pink-500 font-bold uppercase mb-2 flex flex-wrap gap-x-2 gap-y-1">
+                {(Array.isArray(productData.category) ? productData.category : [productData.category]).map((cat, i) => (
+                  <span key={i} className="bg-pink-50 px-2 py-0.5 rounded border border-pink-100">
+                    {cat}
+                  </span>
+                ))}
+                <span className="text-gray-300">/</span>
+                {(Array.isArray(productData.subCategory) ? productData.subCategory : [productData.subCategory]).map((sub, i) => (
+                  <span key={i} className="text-gray-400">
+                    {sub}
+                  </span>
+                ))}
               </p>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-snug mb-2">
                 {productData.name}
