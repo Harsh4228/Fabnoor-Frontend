@@ -3,6 +3,7 @@ import { ShopContext } from "../context/ShopContext";
 import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { getPerPiecePrice, formatNumber, getPackPrice } from "../utils/price";
+import ProductCard from "./ProductCard";
 import axios from "axios";
 
 import PropTypes from 'prop-types';
@@ -67,58 +68,12 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
                 const variantImage = variant.images?.[0] || assets.logo;
                 const linkTo = `/product/${item._id}?color=${encodeURIComponent(variant.color || "")}&code=${encodeURIComponent(variant.code || "")}`;
                 return (
-              <Link
-                key={`${item._id}-${variant.code || variant.color}`}
-                to={linkTo}
-                onClick={handleClick}
-                className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100"
-              >
-                {/* IMAGE */}
-                <div className="relative w-full aspect-[3/4] bg-gradient-to-br from-pink-50 to-rose-50 overflow-hidden">
-                  <img
-                    src={variantImage}
-                    alt={`${item.name} - ${variant.color}`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    onError={(e) => {
-                      e.target.src = assets.placeholder_image;
-                    }}
+                  <ProductCard
+                    key={`${item._id}-${variant.code || variant.color}`}
+                    item={item}
+                    variant={variant}
+                    tag={item.bestseller ? "BESTSELLER" : ""}
                   />
-
-                  {/* Color badge */}
-                  {variant.color && (
-                    <div className="absolute top-2 right-2 z-10 bg-black/50 backdrop-blur-sm text-white text-[9px] font-medium px-2 py-0.5 rounded-full">
-                      {variant.color}
-                    </div>
-                  )}
-
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                  {/* Quick View */}
-                  <span className="absolute bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 px-4 py-2 bg-white text-pink-500 text-sm rounded-full font-semibold hover:bg-pink-500 hover:text-white">
-                    Quick View
-                  </span>
-                </div>
-
-                {/* INFO */}
-                <div className="p-4">
-                  <p className="text-sm font-medium text-gray-900 truncate group-hover:text-pink-500 transition-colors mb-2">
-                    {item.name}
-                  </p>
-                  <div className="text-lg font-bold text-pink-500">
-                    <span className="font-semibold">₹{formatNumber(getPerPiecePrice(item, getProductDiscount(item)))}</span>
-                    {getProductDiscount(item) > 0 && (
-                      <span className="text-[10px] text-gray-400 line-through ml-2">₹{formatNumber(getPerPiecePrice(item))}</span>
-                    )}
-                    <div className="text-xs text-gray-400 mt-1">
-                      (Full Set) ₹{formatNumber(getPackPrice(item, getProductDiscount(item)))}
-                      {getProductDiscount(item) > 0 && (
-                        <span className="text-[10px] text-gray-300 line-through ml-1">₹{formatNumber(getPackPrice(item))}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </Link>
                 );
               })
             )

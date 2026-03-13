@@ -2,7 +2,8 @@
 import { assets } from "../assets/assets";
 
 const WhatsAppChat = () => {
-  const phone = "+919979624404"; // 👈 admin number
+  const rawPhone = import.meta.env.VITE_WHATSAPP_NUMBER || "919979624404";
+  const phone = rawPhone.replace(/\D/g, ''); 
   const message = encodeURIComponent(
     "Hello, I need help regarding a product"
   );

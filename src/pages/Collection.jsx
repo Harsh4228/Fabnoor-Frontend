@@ -6,6 +6,7 @@ import { assets } from "../assets/assets";
 import { FaFilter, FaChevronDown } from "react-icons/fa";
 import { getPerPiecePrice, formatNumber, getPackPrice } from "../utils/price";
 import SetInfo from "../components/SetInfo";
+import ProductCard from "../components/ProductCard";
 import axios from "axios";
 
 const Collection = () => {
@@ -328,73 +329,12 @@ const Collection = () => {
                 const linkTo = `/product/${item._id}?color=${encodeURIComponent(variant.color || "")}&code=${encodeURIComponent(variant.code || "")}`;
 
                 return (
-                  <Link
+                  <ProductCard
                     key={`${item._id}-${variant.code || variant.color}`}
-                    to={linkTo}
-                    className="group relative block"
-                  >
-                    {/* ── Image Container ── */}
-                    <div className="relative rounded-2xl overflow-hidden bg-gray-50 shadow-sm group-hover:shadow-lg transition-shadow duration-400 border border-gray-100 group-hover:border-pink-100">
-                      {/* Image */}
-                      <div className="w-full aspect-[3/4] overflow-hidden">
-                        <img
-                          src={variantImage}
-                          alt={`${item.name} - ${variant.color}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                        />
-                      </div>
-
-                      {/* Dark gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
-
-                      {/* Discount badge */}
-                      {discount > 0 && (
-                        <div className="absolute top-2.5 left-2.5 z-10 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[9px] md:text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md uppercase tracking-wide">
-                          {discount}% OFF
-                        </div>
-                      )}
-
-                      {/* Color badge */}
-                      {variant.color && (
-                        <div className="absolute top-2.5 right-2.5 z-10 bg-black/50 backdrop-blur-sm text-white text-[9px] md:text-[10px] font-medium px-2 py-0.5 rounded-full">
-                          {variant.color}
-                        </div>
-                      )}
-
-                      {/* Hover CTA */}
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-10 w-[85%]">
-                        <span className="block text-center text-[11px] md:text-xs font-semibold text-white bg-pink-500/90 backdrop-blur-sm py-2 rounded-full shadow-lg tracking-wide">
-                          View Collection
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* ── Info Section ── */}
-                    <div className="mt-3 px-0.5">
-                      <h3 className="text-[11px] md:text-sm font-semibold text-gray-800 truncate group-hover:text-rose-500 transition-colors duration-200 mb-1.5 leading-tight">
-                        {item.name}
-                      </h3>
-
-                      <div className="flex items-baseline gap-1.5 flex-wrap">
-                        <span className="text-sm md:text-base font-bold text-rose-500 leading-none">
-                          ₹{formatNumber(piecePriceDiscounted)}
-                          <span className="text-[10px] md:text-xs font-medium text-rose-400 ml-0.5">/pc</span>
-                        </span>
-                        {discount > 0 && (
-                          <span className="text-[10px] text-gray-400 line-through">₹{formatNumber(piecePriceOriginal)}</span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1 mt-1">
-                        <span className="text-[10px] md:text-[11px] text-gray-400">
-                          Set: <span className="text-gray-500 font-medium">₹{formatNumber(packPriceDiscounted)}</span>
-                        </span>
-                        {discount > 0 && (
-                          <span className="text-[10px] text-gray-300 line-through">₹{formatNumber(packPriceOriginal)}</span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
+                    item={item}
+                    variant={variant}
+                    tag={item.bestseller ? "BESTSELLER" : ""}
+                  />
                 );
               })
             )}
