@@ -113,16 +113,11 @@ const Cart = () => {
       const product = products.find((p) => p._id === item.productId);
       if (!product) return;
 
-      const v = getWholesaleVariant(
-        product,
-        item.color,
-        item.type,
-        item.code,
-      );
+      const v = getWholesaleVariant(product, item.color, item.type, item.code);
       if (!v) return;
 
       const productUrl = `${baseUrl}/product/${item.productId}?color=${encodeURIComponent(item.color || "")}&code=${encodeURIComponent(item.code || "")}`;
-      
+
       message += `${index + 1}. *${product.name}*\n`;
       message += `Variant: ${item.color} / ${item.type}\n`;
       message += `Sizes: ${v.sizes.join(", ")}\n`;
@@ -184,11 +179,14 @@ const Cart = () => {
         <div className="space-y-4">
           {cartData.map((item) => {
             const product = products.find((p) => p._id === item.productId);
-            
+
             // If product is not in cache, show a loading placeholder
             if (!product) {
               return (
-                <div key={item.key} className="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 animate-pulse">
+                <div
+                  key={item.key}
+                  className="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 animate-pulse"
+                >
                   <div className="flex gap-4 items-center">
                     <div className="w-24 h-24 md:w-28 md:h-28 bg-gray-100 rounded-lg flex-shrink-0" />
                     <div className="flex-1 space-y-3">
@@ -364,7 +362,11 @@ const Cart = () => {
                   onClick={() => navigate("/place-order")}
                   className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-pink-600 hover:to-rose-600 transition-all duration-300 shadow-md hover:shadow-xl"
                 >
-                  PROCEED TO CHECKOUT
+                  PROCEED TO CHECKOUT <br />
+                  FOR
+                  <br />
+                  ORDER NOW
+                  <br />
                 </button>
                 <button
                   onClick={handleWhatsAppInquiry}
