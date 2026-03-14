@@ -123,39 +123,36 @@ const ProductCard = ({ item, variant, tag }) => {
                     {variant.fabric || variant.type || (Array.isArray(item.subCategory) ? item.subCategory[0] : item.subCategory) || "Product"}
                 </p>
 
-                {/* Price and Buttons Row */}
-                <div className="mt-auto flex items-center justify-between gap-3 pt-2">
-                    {/* Price */}
-                    <div className="flex flex-col justify-center">
-                         <span className="text-base md:text-lg font-bold text-gray-800">
-                             {currency} {formatNumber(discountedPrice)}
-                         </span>
-                         {discount > 0 && (
-                             <span className="text-[10px] md:text-xs text-gray-400 line-through">
-                                 {currency} {formatNumber(perPiecePrice)}
-                             </span>
-                         )}
-                    </div>
-                    
-                    {/* Buttons */}
-                    <div className="flex flex-col gap-1.5 w-[55%] min-w-[110px]">
-                        <button 
-                            onClick={handleAddToCartClick}
-                            className="bg-[#2d3436] hover:bg-black text-white py-1.5 px-3 rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
-                        >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                            </svg>
-                            <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wide">Add To Cart</span>
-                        </button>
-                        <button 
-                            onClick={handleWhatsAppInquiry}
-                            className="bg-[#25D366] hover:bg-[#1faa53] text-white py-1.5 px-3 rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
-                        >
-                            <FaWhatsapp size={15} />
-                            <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wide">Inquiry Now</span>
-                        </button>
-                    </div>
+                {/* Price Display - Above Buttons */}
+                <div className="flex items-center gap-2 mb-3">
+                    <span className="text-base md:text-lg font-bold text-gray-800">
+                        {currency} {formatNumber(discountedPrice)}
+                    </span>
+                    {discount > 0 && (
+                        <span className="text-[10px] md:text-xs text-gray-400 line-through">
+                            {currency} {formatNumber(perPiecePrice)}
+                        </span>
+                    )}
+                </div>
+                
+                {/* Buttons Section - Responsive Stack */}
+                <div className="mt-auto flex flex-col gap-2">
+                    <button 
+                        onClick={handleAddToCartClick}
+                        className="w-full bg-[#2d3436] hover:bg-black text-white py-2 px-3 rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
+                    >
+                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide whitespace-nowrap">Add To Cart</span>
+                    </button>
+                    <button 
+                        onClick={handleWhatsAppInquiry}
+                        className="w-full bg-[#25D366] hover:bg-[#1faa53] text-white py-2 px-3 rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
+                    >
+                        <FaWhatsapp size={14} className="flex-shrink-0" />
+                        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide whitespace-nowrap">Inquiry Now</span>
+                    </button>
                 </div>
             </div>
         </div>

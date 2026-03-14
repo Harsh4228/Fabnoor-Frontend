@@ -2,6 +2,7 @@ import { useContext, useMemo } from "react";
 import { ShopContext } from "../context/ShopContext";
 import { Link } from "react-router-dom";
 import Title from "../components/Title";
+import ProductCard from "../components/ProductCard";
 
 const Wishlist = () => {
   const context = useContext(ShopContext);
@@ -57,81 +58,29 @@ const Wishlist = () => {
 
   // ✅ WISHLIST ITEMS UI
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-16">
-      <div>
-        <div className="mb-8">
+    <div className="min-h-screen bg-[#fafafa] py-12 md:py-16">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="mb-10 text-center">
           <Title text1="MY" text2="WISHLIST" />
+          <p className="text-gray-500 text-xs md:text-sm mt-2">
+            You have {safeWishlist.length} items in your wishlist
+          </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {safeWishlist.map((item, index) => {
             const product = item?.productId;
-            const image = product?.variants?.[0]?.images?.[0];
-
             if (!product) return null;
 
+            // Find the correct variant
+            const variant = product.variants?.find(v => v.color === item.color) || product.variants?.[0];
+
             return (
-              <div
-                key={index}
-                className="group relative bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100"
-              >
-                {/* Remove Button */}
-                <button
-                  onClick={() =>
-                    removeFromWishlist?.(product._id, item.color, item.size)
-                  }
-                  className="absolute top-3 right-3 z-10 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-red-50 transition-all duration-300"
-                >
-                  <svg
-                    className="w-5 h-5 text-gray-600 hover:text-red-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-
-                <Link to={`/product/${product._id}`}>
-                  <div className="relative aspect-[3/4] bg-gradient-to-br from-pink-50 to-rose-50 overflow-hidden">
-                    <img
-                      src={image || "/placeholder.png"}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      alt={product.name}
-                    />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                    <button className="absolute bottom-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 px-4 py-2 bg-white text-pink-500 text-sm rounded-full font-semibold hover:bg-pink-500 hover:text-white">
-                      View Product
-                    </button>
-                  </div>
-                </Link>
-
-                <div className="p-4">
-                  <h2 className="font-semibold text-gray-900 mb-2 truncate group-hover:text-pink-500">
-                    {product.name}
-                  </h2>
-
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-                    <span className="px-2 py-1 bg-pink-50 text-pink-600 rounded-full text-xs font-medium">
-                      {item.color}
-                    </span>
-                  </div>
-
-                  <Link
-                    to={`/product/${product._id}`}
-                    className="block w-full py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-center rounded-lg font-semibold hover:from-pink-600 hover:to-rose-600 transition-all duration-300 text-sm"
-                  >
-                    View Product
-                  </Link>
-                </div>
-              </div>
+              <ProductCard 
+                key={`${product._id}-${item.color}-${index}`} 
+                item={product} 
+                variant={variant} 
+              />
             );
           })}
         </div>
