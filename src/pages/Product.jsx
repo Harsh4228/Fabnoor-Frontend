@@ -350,7 +350,7 @@ const Product = () => {
                 <img
                   src={selectedImage || assets.placeholder_image}
                   alt={productData.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
                 />
 
                 {images.length > 1 && (
