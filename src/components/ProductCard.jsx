@@ -118,11 +118,6 @@ const ProductCard = ({ item, variant, tag }) => {
                     {sizes.join(', ')}
                 </p>
 
-                {/* Type/Category */}
-                <p className="text-xs text-gray-300 font-normal mb-3">
-                    {(Array.isArray(item.subCategory) ? item.subCategory[0] : item.subCategory) || "Product"}
-                </p>
-
                 {/* Price Display - Above Buttons */}
                 <div className="flex items-center gap-2 mb-3">
                     <span className="text-base md:text-lg font-bold text-gray-800">
