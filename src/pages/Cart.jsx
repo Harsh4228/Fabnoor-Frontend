@@ -98,6 +98,46 @@ const Cart = () => {
     };
   };
 
+  const handleWhatsAppInquiry = () => {
+    if (!cartData.length) return;
+
+    const rawNumber = import.meta.env.VITE_WHATSAPP_NUMBER || "919274703338";
+    const phoneNumber = rawNumber.replace(/\D/g, "");
+    const baseUrl = window.location.origin;
+
+    let message = `*Fabnoor - Product Inquiry*\n\n`;
+    message += `Hi, I'm interested in the following products in my cart:\n\n`;
+    message += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    cartData.forEach((item, index) => {
+      const product = products.find((p) => p._id === item.productId);
+      if (!product) return;
+
+      const v = getWholesaleVariant(
+        product,
+        item.color,
+        item.type,
+        item.code,
+      );
+      if (!v) return;
+
+      const productUrl = `${baseUrl}/product/${item.productId}?color=${encodeURIComponent(item.color || "")}&code=${encodeURIComponent(item.code || "")}`;
+      
+      message += `${index + 1}. *${product.name}*\n`;
+      message += `Variant: ${item.color} / ${item.type}\n`;
+      message += `Sizes: ${v.sizes.join(", ")}\n`;
+      message += `Quantity: ${item.quantity} Pack(s)\n`;
+      message += `Link: ${productUrl}\n`;
+      message += `\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    });
+
+    message += `Please let me know the availability and other details.\n`;
+    message += `Thank you!`;
+
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
   const handleWhatsAppCartOrder = () => {
     navigate("/place-order");
   };
@@ -327,18 +367,18 @@ const Cart = () => {
                   PROCEED TO CHECKOUT
                 </button>
                 <button
-                  onClick={handleWhatsAppCartOrder}
-                  className="w-full mt-3 bg-white border-2 border-[#25D366] text-[#25D366] px-8 py-3 rounded-xl font-semibold hover:bg-[#25D366]/5 transition-all duration-300 flex items-center justify-center gap-2"
+                  onClick={handleWhatsAppInquiry}
+                  className="w-full mt-3 bg-[#25D366] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#1faa53] transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-xl"
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="w-6 h-6"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.02-.956-.263-.089-.454-.134-.644.15-.19.283-.735.956-.9 1.144-.165.188-.331.21-.628.061-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.644-1.554-.882-2.126-.231-.555-.465-.48-.644-.488-.166-.008-.356-.01-.546-.01-.19 0-.5-.072-.761.21-.261.282-1.001.978-1.001 2.388 0 1.41 1.026 2.774 1.17 2.962.143.188 2.019 3.084 4.889 4.326.682.296 1.214.473 1.629.605.685.217 1.307.186 1.802.113.551-.082 1.758-.719 2.007-1.413.25-.694.25-1.289.175-1.413-.075-.124-.271-.197-.568-.346z" />
                     <path d="M12.004 0C5.378 0 0 5.378 0 12.004c0 2.112.547 4.178 1.585 6.002L0 24l6.166-1.618a11.94 11.94 0 0 0 5.838 1.518c6.626 0 12.004-5.378 12.004-12.004S18.63 0 12.004 0zm0 21.944a9.9 9.9 0 0 1-5.056-1.388l-.362-.216-3.758.985 1.002-3.663-.238-.378a9.904 9.904 0 0 1-1.521-5.28c0-5.478 4.456-9.934 9.934-9.934 5.478 0 9.934 4.456 9.934 9.934 0 5.478-4.456 9.934-9.934 9.934z" />
                   </svg>
-                  ORDER ON WHATSAPP
+                  WHATSAPP INQUIRY
                 </button>
               </div>
             </div>
