@@ -144,7 +144,22 @@ const Cart = () => {
         <div className="space-y-4">
           {cartData.map((item) => {
             const product = products.find((p) => p._id === item.productId);
-            if (!product) return null;
+            
+            // If product is not in cache, show a loading placeholder
+            if (!product) {
+              return (
+                <div key={item.key} className="bg-white rounded-xl shadow-sm p-4 md:p-6 border border-gray-100 animate-pulse">
+                  <div className="flex gap-4 items-center">
+                    <div className="w-24 h-24 md:w-28 md:h-28 bg-gray-100 rounded-lg flex-shrink-0" />
+                    <div className="flex-1 space-y-3">
+                      <div className="h-4 bg-gray-100 rounded w-1/2" />
+                      <div className="h-3 bg-gray-100 rounded w-1/4" />
+                      <div className="h-3 bg-gray-100 rounded w-1/4" />
+                    </div>
+                  </div>
+                </div>
+              );
+            }
 
             const v = getWholesaleVariant(
               product,

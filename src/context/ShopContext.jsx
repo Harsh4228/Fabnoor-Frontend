@@ -98,9 +98,9 @@ export const ShopContextProvider = ({ children }) => {
       `${pid}::${encode(color)}::${encode(type)}::${encode(code)}`;
     const parseKey = (key) => {
       if (!key || typeof key !== "string")
-        return { productId: key, color: "", type: "", code: "" };
+        return { productId: key, color: "", type: "", fabric: "", code: "" };
       if (key.indexOf("::") === -1)
-        return { productId: key, color: "", type: "", code: "" };
+        return { productId: key, color: "", type: "", fabric: "", code: "" };
       const [pid, c, t, cd] = key.split("::");
       return {
         productId: pid,
@@ -131,7 +131,7 @@ export const ShopContextProvider = ({ children }) => {
             newCart[rawKey] = {
               quantity: qty,
               color: color || value.color || "",
-              fabric: fabric || value.fabric || type || value.type || "",
+              fabric: type || value.fabric || value.type || "",
               code: code || value.code || "",
               productId,
             };
@@ -308,12 +308,7 @@ export const ShopContextProvider = ({ children }) => {
   const getCartItems = () => {
     let total = 0;
     for (const key in cartItems) {
-      const productId = key.includes("::") ? key.split("::")[0] : key;
-      const product = products.find((p) => p._id === productId);
-      // Only count if product exists in cache
-      if (product) {
-        total += Number(cartItems[key]?.quantity || 0);
-      }
+      total += Number(cartItems[key]?.quantity || 0);
     }
     return total;
   };
@@ -798,6 +793,8 @@ export const ShopContextProvider = ({ children }) => {
   }, [getWishlist]);
 
   // ✅ Cleanup orphaned cart items from local state when products list changes
+  // ✅ Removed aggressive cart cleanup to prevent data loss on refresh
+  /*
   useEffect(() => {
     if (products.length > 0) {
       setCartItems((prev) => {
@@ -815,6 +812,7 @@ export const ShopContextProvider = ({ children }) => {
       });
     }
   }, [products]);
+  */
 
   // ✅ merge guest wishlist after login
   useEffect(() => {
@@ -848,13 +846,13 @@ export const ShopContextProvider = ({ children }) => {
           }
         }
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => {
       axios.interceptors.response.eject(interceptorId);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   return (

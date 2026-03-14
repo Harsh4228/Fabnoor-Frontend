@@ -523,13 +523,7 @@ const Product = () => {
               </div>
 
               {/* Variants */}
-              <div className="mb-4">
-                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  Colour:{" "}
-                  <span className="text-gray-800 normal-case tracking-normal">
-                    {selectedVariant.color}
-                  </span>
-                </p>
+              <div className="mb-6">
                 <div className="flex gap-2 flex-wrap">
                   {productData.variants.map((v, idx) => {
                     const isSelected =
@@ -545,21 +539,21 @@ const Product = () => {
                           setSelectedImageIndex(0);
                           setSelectedImage(v.images?.[0] || "");
                         }}
-                        className={`flex flex-col items-center w-[62px] rounded-lg overflow-hidden border-2 transition-all duration-200 ${isSelected ? "border-pink-400 shadow-md shadow-pink-100" : "border-gray-200 hover:border-gray-300"}`}
+                        className={`flex flex-col items-center w-[66px] rounded-lg overflow-hidden border-2 transition-all duration-200 ${isSelected ? "border-pink-400 shadow-md shadow-pink-100" : "border-gray-200 hover:border-gray-300"}`}
                       >
                         <img
                           src={v.images?.[0] || assets.placeholder_image}
-                          className="w-full object-cover"
+                          className="w-full object-contain bg-gray-50"
                           style={{ aspectRatio: "3/4" }}
                           alt={v.color}
                         />
                         <div
-                          className={`w-full py-1 text-center ${isSelected ? "bg-pink-500" : "bg-gray-50"}`}
+                          className={`w-full py-1 text-center bg-gray-50 ${isSelected ? "bg-pink-500" : "bg-gray-100"}`}
                         >
                           <p
-                            className={`text-[10px] font-bold ${isSelected ? "text-white" : "text-gray-600"}`}
+                            className={`text-[9px] font-bold truncate px-1 uppercase ${isSelected ? "text-white" : "text-gray-600"}`}
                           >
-                            ₹{formatNumber(v.price * (1 - discount / 100))}
+                            {v.color}
                           </p>
                         </div>
                       </button>

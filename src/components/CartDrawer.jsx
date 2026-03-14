@@ -43,7 +43,7 @@ const CartDrawer = () => {
           variant = product?.variants?.find((v) => v.code === code);
         }
         if (!variant) {
-          variant = product?.variants?.find((v) => v.color === color && v.fabric === fabric) ||
+          variant = product?.variants?.find((v) => v.color === color && (v.fabric === fabric || v.type === fabric)) ||
             product?.variants?.[0];
         }
 
