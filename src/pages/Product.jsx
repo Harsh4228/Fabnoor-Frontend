@@ -548,10 +548,10 @@ const Product = () => {
                           alt={v.color}
                         />
                         <div
-                          className={`w-full py-1 text-center bg-gray-50 ${isSelected ? "bg-pink-500" : "bg-gray-100"}`}
+                          className={`w-full py-1 text-center ${isSelected ? "bg-pink-500" : "bg-gray-50"}`}
                         >
                           <p
-                            className={`text-[9px] font-bold truncate px-1 uppercase ${isSelected ? "text-white" : "text-gray-600"}`}
+                            className={`text-[9px] truncate px-1 uppercase ${isSelected ? "text-white font-bold" : "text-gray-400 font-medium"}`}
                           >
                             {v.color}
                           </p>
@@ -565,9 +565,9 @@ const Product = () => {
               {/* Size Pack */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
                     SIZE PACK{" "}
-                    <span className="text-gray-800 normal-case font-bold">
+                    <span className="text-gray-400 normal-case font-medium">
                       ({piecesCount} pcs)
                     </span>
                   </p>
@@ -577,7 +577,7 @@ const Product = () => {
                   {sortSizes(selectedVariant.sizes).map((size) => (
                     <div
                       key={size}
-                      className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 shadow-sm"
+                      className="px-3 py-1.5 bg-gray-50/50 border border-gray-100 rounded-lg text-sm font-medium text-gray-400"
                     >
                       {size}
                     </div>

@@ -120,7 +120,7 @@ const ProductCard = ({ item, variant, tag }) => {
 
                 {/* Type/Category */}
                 <p className="text-xs text-gray-300 font-normal mb-3">
-                    {variant.fabric || variant.type || (Array.isArray(item.subCategory) ? item.subCategory[0] : item.subCategory) || "Product"}
+                    {(Array.isArray(item.subCategory) ? item.subCategory[0] : item.subCategory) || "Product"}
                 </p>
 
                 {/* Price Display - Above Buttons */}
