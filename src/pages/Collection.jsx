@@ -196,13 +196,10 @@ const Collection = () => {
 
             {/* HIERARCHICAL CATEGORY LIST */}
             <div className="space-y-6">
-              {[...allCategories]
-                .sort((a, b) => a.localeCompare(b))
-                .map((cat) => {
-                  const subs = [...(subCategoriesMap[cat] || [])].sort((a, b) =>
-                    a.localeCompare(b),
-                  );
-                  const isSelected = category.includes(cat);
+              {allCategories.map((catObj) => {
+                const cat = typeof catObj === 'string' ? catObj : catObj.name;
+                const subs = subCategoriesMap[cat] || [];
+                const isSelected = category.includes(cat);
 
                   return (
                     <div key={cat} className="group">
@@ -387,13 +384,10 @@ const Collection = () => {
             <p className="font-bold mb-6 text-xl text-gray-900">Filters</p>
 
             <div className="space-y-6">
-              {[...allCategories]
-                .sort((a, b) => a.localeCompare(b))
-                .map((cat) => {
-                  const subs = [...(subCategoriesMap[cat] || [])].sort((a, b) =>
-                    a.localeCompare(b),
-                  );
-                  const isSelected = category.includes(cat);
+              {allCategories.map((catObj) => {
+                const cat = typeof catObj === 'string' ? catObj : catObj.name;
+                const subs = subCategoriesMap[cat] || [];
+                const isSelected = category.includes(cat);
 
                   return (
                     <div key={cat} className="border-b border-gray-100 pb-4">

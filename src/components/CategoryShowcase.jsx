@@ -4,41 +4,58 @@ import { assets } from "../assets/assets";
 import axios from "axios";
 
 const CategoryShowcase = () => {
-  const [products, setProducts] = useState([]);
+  const [categoriesData, setCategoriesData] = useState([]);
   const [loading, setLoading] = useState(true);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch a limited amount of products to extract categories
-        const { data } = await axios.get(`${backendUrl}/api/product/list`, {
-          params: { limit: 50 },
+        // 1. Fetch official categories (sorted by sequence)
+        const metadataRes = await axios.get(`${backendUrl}/api/product/metadata`);
+        const officialCategories = metadataRes.data.success ? metadataRes.data.categories : [];
+
+        // 2. Fetch products to check existence and get images
+        const productsRes = await axios.get(`${backendUrl}/api/product/list`, {
+          params: { limit: 100 },
         });
-        if (data.success && data.products) {
-          setProducts(data.products);
-        }
+        const products = productsRes.data.success ? productsRes.data.products : [];
+
+        // 3. Map products to their categories
+        const categoryProductMap = {};
+        products.forEach(p => {
+          if (!p.category) return;
+          const list = Array.isArray(p.category) ? p.category : [p.category];
+          list.forEach(cat => {
+            if (!categoryProductMap[cat]) {
+              categoryProductMap[cat] = p?.variants?.[0]?.images?.[0] || assets.logo;
+            }
+          });
+        });
+
+        // 4. Build final list using official categories (preserving sequence order)
+        const finalCategories = officialCategories
+          .filter(catObj => categoryProductMap[catObj.name]) // Only if products exist
+          .map(catObj => ({
+            name: catObj.name,
+            image: categoryProductMap[catObj.name]
+          }));
+
+        setCategoriesData(finalCategories);
+
+        setCategoriesData(finalCategories);
       } catch (err) {
-        console.error("Category fetch error", err);
+        console.error("Showcase fetch error", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchData();
   }, [backendUrl]);
 
-  const categories = useMemo(() => {
-    const map = {};
-    products.forEach((p) => {
-      if (!p.category || map[p.category]) return;
-      map[p.category] = {
-        name: p.category,
-        image: p?.variants?.[0]?.images?.[0] || assets.logo,
-      };
-    });
-    return Object.values(map);
-  }, [products]);
+  // 'categories' constant replaces the old useMemo for the JSX mapping below
+  const categories = categoriesData;
 
   if (loading) return null;
 
