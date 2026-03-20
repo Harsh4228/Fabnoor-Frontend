@@ -10,7 +10,7 @@ import ProductCard from "../components/ProductCard";
 import axios from "axios";
 
 const Collection = () => {
-  const { search, showSearch, getProductDiscount } = useContext(ShopContext);
+  const { search, showSearch, getProductDiscount, addProductsToCache } = useContext(ShopContext);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [searchParams] = useSearchParams();
@@ -95,6 +95,7 @@ const Collection = () => {
       });
 
       if (data.success) {
+        addProductsToCache(data.products);
         if (isAppend) {
           setProductsList((prev) => [...prev, ...data.products]);
         } else {

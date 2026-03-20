@@ -7,7 +7,7 @@ import ProductCard from "./ProductCard";
 import axios from "axios";
 
 const BestSeller = () => {
-  const { getProductDiscount } = useContext(ShopContext);
+  const { getProductDiscount, addProductsToCache } = useContext(ShopContext);
   const [bestSellers, setBestSellers] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -19,6 +19,7 @@ const BestSeller = () => {
         });
         if (data.success && data.products) {
           setBestSellers(data.products);
+          addProductsToCache(data.products);
         }
       } catch (err) {
         console.error("Bestseller fetch error", err);

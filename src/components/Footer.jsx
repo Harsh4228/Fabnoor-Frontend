@@ -122,7 +122,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Maruti Fashion, 9 Balaji Society,
+                  9 Balaji Society,
                   Maruti Chowk, Hirabaugh,
                   Surat, Gujarat 395006, India
                 </a>

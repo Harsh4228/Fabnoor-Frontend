@@ -9,7 +9,7 @@ import axios from "axios";
 import PropTypes from 'prop-types';
 
 const RelatedProducts = ({ category, subCategory, currentProductId }) => {
-  const { getProductDiscount } = useContext(ShopContext);
+  const { getProductDiscount, addProductsToCache } = useContext(ShopContext);
   const [related, setRelated] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -20,6 +20,7 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
           params: { category, subCategory, limit: 6 }
         });
         if (data.success && data.products) {
+          addProductsToCache(data.products);
           const filtered = data.products.filter(item => item._id !== currentProductId);
           setRelated(filtered.slice(0, 5));
         }

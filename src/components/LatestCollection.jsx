@@ -7,7 +7,7 @@ import ProductCard from "./ProductCard";
 import axios from "axios";
 
 const LatestCollection = () => {
-  const { getProductDiscount } = useContext(ShopContext);
+  const { getProductDiscount, addProductsToCache } = useContext(ShopContext);
   const [latestProducts, setLatestProducts] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -19,6 +19,7 @@ const LatestCollection = () => {
         });
         if (data.success && data.products) {
           setLatestProducts(data.products);
+          addProductsToCache(data.products);
         }
       } catch (err) {
         console.error("Latest fetch error", err);
