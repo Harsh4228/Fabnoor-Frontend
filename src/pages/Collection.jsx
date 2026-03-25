@@ -21,6 +21,7 @@ const Collection = () => {
   const [showSort, setShowSort] = useState(false);
   const mobileSortRef = useRef(null);
   const desktopSortRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   // Data state
   const [productsList, setProductsList] = useState([]);
@@ -78,6 +79,13 @@ const Collection = () => {
 
   /* FETCH PRODUCTS */
   const fetchProducts = async (isAppend = false) => {
+    // Cancel any previous in-flight request to prevent stale results overwriting fresh ones
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
     try {
       const params = {
@@ -92,6 +100,7 @@ const Collection = () => {
 
       const { data } = await axios.get(`${backendUrl}/api/product/list`, {
         params,
+        signal: controller.signal,
       });
 
       if (data.success) {
@@ -104,6 +113,7 @@ const Collection = () => {
         setTotalCount(data.totalCount || 0);
       }
     } catch (err) {
+      if (err.name === "CanceledError" || err.name === "AbortError" || axios.isCancel(err)) return;
       console.error("Failed to load products", err);
     } finally {
       setLoading(false);
