@@ -21,7 +21,9 @@ jobs:
 
             cd /var/www/fabnoor/Fabnoor-Frontend
 
-            git pull origin main
+            git fetch origin
+            
+            git reset --hard origin/main
 
             npm install
 
