@@ -9,7 +9,8 @@ const Profile = () => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [user, setUser] = useState(null);
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [shopName, setShopName] = useState("");
   const [mobile, setMobile] = useState(""); // ✅ always string
   const [dob, setDob] = useState("");
@@ -35,7 +36,10 @@ const Profile = () => {
 
       if (res.data.success) {
         setUser(res.data.user);
-        setName(res.data.user?.name || "");
+        const fullName = res.data.user?.name || "";
+        const parts = fullName.trim().split(" ");
+        setFirstName(parts[0] || "");
+        setLastName(parts.slice(1).join(" ") || "");
         setShopName(res.data.user?.shopName || "");
         setMobile(res.data.user?.mobile || "");
         setDob(res.data.user?.dob || "");
@@ -95,10 +99,12 @@ const Profile = () => {
 
   /* ================= UPDATE PROFILE ================= */
   const updateProfile = async () => {
-    if (!name.trim()) return toast.error("Name is required");
+    if (!firstName.trim()) return toast.error("First name is required");
     if (!shopName.trim()) return toast.error("Shop Name is required");
     if (!mobile.trim()) return toast.error("Mobile is required");
     if (mobile.trim().length !== 10) return toast.error("Mobile must be 10 digits");
+
+    const name = [firstName.trim(), lastName.trim()].filter(Boolean).join(" ");
 
     try {
       setLoading(true);
@@ -163,11 +169,11 @@ const Profile = () => {
           <div className="w-full md:w-[35%] bg-gradient-to-b from-pink-50 to-white p-8 md:p-10 flex flex-col items-center border-b md:border-b-0 md:border-r border-gray-100">
             <div className="w-32 h-32 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-pink-200">
               <span className="text-4xl text-white font-bold">
-                {(name || "User").charAt(0).toUpperCase()}
+                {(firstName || "U").charAt(0).toUpperCase()}
               </span>
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-800 text-center mb-1">{name || "User"}</h2>
+            <h2 className="text-2xl font-bold text-gray-800 text-center mb-1">{[firstName, lastName].filter(Boolean).join(" ") || "User"}</h2>
             <p className="text-gray-500 font-medium mb-1">{shopName || ""}</p>
             <p className="text-gray-400 text-sm mb-8">{user.email}</p>
 
@@ -192,16 +198,29 @@ const Profile = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* Name */}
+              {/* First Name */}
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                  Full Name <span className="text-rose-500">*</span>
+                  First Name <span className="text-rose-500">*</span>
                 </label>
                 <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                   className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-100 outline-none transition-all"
-                  placeholder="e.g. Jane Doe"
+                  placeholder="e.g. Jane"
+                />
+              </div>
+
+              {/* Last Name */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  Last Name
+                </label>
+                <input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-100 outline-none transition-all"
+                  placeholder="e.g. Doe"
                 />
               </div>
 
