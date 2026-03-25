@@ -11,6 +11,14 @@ import {
 import SetInfo from "../components/SetInfo";
 import { toast } from "react-toastify";
 
+const SIZE_ORDER = ["S","M","L","XL","XXL","XXXL","4XL","5XL","6XL","7XL","Free Size"];
+const sortSizes = (sizes) =>
+  [...sizes].sort((a, b) => {
+    const ai = SIZE_ORDER.indexOf(a);
+    const bi = SIZE_ORDER.indexOf(b);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  });
+
 const Cart = () => {
   const {
     products,
@@ -120,7 +128,7 @@ const Cart = () => {
 
       message += `${index + 1}. *${product.name}*\n`;
       message += `Variant: ${item.color} / ${item.type}\n`;
-      message += `Sizes: ${v.sizes.join(", ")}\n`;
+      message += `Sizes: ${sortSizes(v.sizes).join(", ")}\n`;
       message += `Quantity: ${item.quantity} Pack(s)\n`;
       message += `Link: ${productUrl}\n`;
       message += `\n━━━━━━━━━━━━━━━━━━━━━━\n\n`;
@@ -244,7 +252,7 @@ const Cart = () => {
                       <p className="text-sm text-gray-500">
                         Pack Sizes:{" "}
                         <span className="font-medium">
-                          {v.sizes.join(", ")}
+                          {sortSizes(v.sizes).join(", ")}
                         </span>
                       </p>
                     </div>
