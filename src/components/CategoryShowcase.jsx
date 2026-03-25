@@ -60,24 +60,24 @@ const CategoryShowcase = () => {
   if (loading) return null;
 
   return (
-    <section className="my-10 md:my-12 py-6 md:py-8 bg-gradient-to-b from-pink-50/30 to-white">
-      <div className="container mx-auto px-4">
+    <section className="my-4 md:my-6 py-3 md:py-4 bg-gradient-to-b from-pink-50/30 to-white">
+      <div className="w-full">
         {/* Title */}
-        <div className="text-center mb-6 md:mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3">
+        <div className="text-center mb-3 md:mb-4 px-2">
+          <div className="flex items-center justify-center gap-2 mb-1">
             <div className="h-px w-6 md:w-10 bg-gradient-to-r from-transparent to-rose-300" />
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-serif text-gray-900">
+            <h2 className="text-lg md:text-xl lg:text-2xl font-serif text-gray-900">
               SHOP BY <span className="text-rose-500">CATEGORY</span>
             </h2>
             <div className="h-px w-6 md:w-10 bg-gradient-to-l from-transparent to-rose-300" />
           </div>
-          <p className="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xs text-gray-600 max-w-2xl mx-auto">
             Explore our curated collections designed for every occasion
           </p>
         </div>
 
         {/* Categories */}
-        <div className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-3 px-1">
+        <div className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide pb-2 px-2">
           {categories.map((cat) => (
             <div
               key={cat.name}
