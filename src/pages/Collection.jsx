@@ -33,9 +33,9 @@ const Collection = () => {
   const [allCategories, setAllCategories] = useState([]);
   const [subCategoriesMap, setSubCategoriesMap] = useState({});
 
-  // Active filters
-  const [category, setCategory] = useState([]);
-  const [subCategory, setSubCategory] = useState([]);
+  // Active filters — initialized directly from URL so first fetch is already filtered
+  const [category, setCategory] = useState(() => urlCategory ? [urlCategory] : []);
+  const [subCategory, setSubCategory] = useState(() => urlSubCategory ? [urlSubCategory] : []);
   const [sortType, setSortType] = useState("relevant");
 
   /* IMAGE HELPER */
