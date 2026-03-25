@@ -1,12 +1,27 @@
 import { assets } from "../assets/assets";
 import { useEffect, useState, useRef } from "react";
+import axios from "axios";
 
 const Hero = ({ interval = 4000 }) => {
-  const slides = [assets.Hero, assets.Hero, assets.Hero];
+  const [slides, setSlides] = useState([assets.Hero]);
   const [index, setIndex] = useState(0);
   const timerRef = useRef(null);
   const [paused, setPaused] = useState(false);
   const touchStartX = useRef(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  /* Fetch hero images from backend; fall back to local asset */
+  useEffect(() => {
+    axios
+      .get(`${backendUrl}/api/hero`)
+      .then(({ data }) => {
+        if (data.success && data.images?.length) {
+          setSlides(data.images.map((img) => img.url));
+          setIndex(0);
+        }
+      })
+      .catch(() => {/* keep default */});
+  }, [backendUrl]);
 
   useEffect(() => {
     // clear any existing timer
