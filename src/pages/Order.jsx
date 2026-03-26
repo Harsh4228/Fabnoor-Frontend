@@ -329,8 +329,14 @@ const Order = () => {
                       <span className="text-slate-400 font-bold tracking-widest uppercase">Method</span>
                       <span className="font-black text-slate-900 uppercase">{selectedOrder.paymentMethod}</span>
                     </div>
+                    <div className="flex justify-between items-center text-xs ml-1">
+                      <span className="text-slate-400 font-bold tracking-widest uppercase">Status</span>
+                      <span className={`font-black uppercase px-2 py-0.5 rounded-md ${selectedOrder.payment ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                        {selectedOrder.payment ? "Paid" : "Unpaid"}
+                      </span>
+                    </div>
                     <div className="flex justify-between items-end border-t border-slate-200 pt-4 ml-1">
-                      <span className="text-slate-400 font-bold tracking-widest uppercase text-[10px] pb-1">Total Paid</span>
+                      <span className="text-slate-400 font-bold tracking-widest uppercase text-[10px] pb-1">Total Amount</span>
                       <span className="font-black text-pink-500 text-3xl tracking-tighter">{currency}{selectedOrder.amount}</span>
                     </div>
                   </div>
