@@ -172,11 +172,13 @@ const Collection = () => {
           </button>
 
           {showSort && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-xl shadow-lg z-20">
+            <div className="absolute right-0 mt-2 w-44 bg-white border rounded-xl shadow-lg z-20">
               {[
                 { key: "relevant", label: "Relevant" },
                 { key: "low-high", label: "Price: Low → High" },
                 { key: "high-low", label: "Price: High → Low" },
+                { key: "new-old", label: "Newest First" },
+                { key: "old-new", label: "Oldest First" },
               ].map((s) => (
                 <button
                   key={s.key}
@@ -305,6 +307,8 @@ const Collection = () => {
                     { key: "relevant", label: "Relevant" },
                     { key: "low-high", label: "Price: Low → High" },
                     { key: "high-low", label: "Price: High → Low" },
+                    { key: "new-old", label: "Newest First" },
+                    { key: "old-new", label: "Oldest First" },
                   ].map((s) => (
                     <button
                       key={s.key}
