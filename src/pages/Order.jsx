@@ -154,7 +154,7 @@ const Order = () => {
                           {currency}{item.price}
                         </p>
                         <p><span className="text-gray-400">Qty:</span> {item.quantity}</p>
-                        <p><span className="text-gray-400">Size:</span> {item.size}</p>
+                        <p><span className="text-gray-400">Size:</span> {Array.isArray(item.size) ? item.size.join(', ') : item.size}</p>
                         <p><span className="text-gray-400">Color:</span> {item.color}</p>
                         {item.code && (
                           <p className="col-span-2 sm:col-auto">
@@ -355,7 +355,7 @@ const Order = () => {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-black text-slate-900 truncate uppercase tracking-tight">{i.name}</p>
                         <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-widest">
-                          {i.color} / {i.size}
+                          {i.color} / {Array.isArray(i.size) ? i.size.join(', ') : i.size}
                         </p>
                       </div>
                       <p className="text-lg font-black text-slate-900 tracking-tighter">{currency}{i.price * i.quantity}</p>

@@ -88,7 +88,7 @@ const ReviewModal = ({ item, orderId, onClose, onSuccess }) => {
                     <div>
                         <p className="font-medium text-sm">{item.name}</p>
                         <p className="text-xs text-gray-500">
-                            Color: {item.color} {item.size ? `| Size: ${item.size}` : ""}
+                            Color: {item.color} {item.size ? `| Size: ${Array.isArray(item.size) ? item.size.join(', ') : item.size}` : ""}
                         </p>
                     </div>
                 </div>
