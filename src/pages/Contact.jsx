@@ -1,10 +1,25 @@
 
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Title from "../components/Title";
 import Newsletter from "../components/Newsletter";
 import { assets } from "../assets/assets";
 
 // ============= Contact.jsx =============
 const Contact = () => {
+  const [contactImg, setContactImg] = useState(null)
+  const [imgLoading, setImgLoading] = useState(true)
+
+  useEffect(() => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
+    axios.get(`${backendUrl}/api/page-images?page=contact`)
+      .then(({ data }) => {
+        if (data.success && data.images.length > 0) setContactImg(data.images[0].url)
+      })
+      .catch(() => {})
+      .finally(() => setImgLoading(false))
+  }, [])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
       <div className="container mx-auto px-4 py-16">
@@ -15,11 +30,15 @@ const Contact = () => {
         <div className="flex flex-col md:flex-row gap-12 items-center mb-16">
           {/* IMAGE */}
           <div className="w-full md:w-1/2">
-            <img
-              className="w-full rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500"
-              src={assets.contact_img}
-              alt="Contact Us"
-            />
+            {imgLoading ? (
+              <div className="w-full aspect-[4/3] rounded-2xl bg-gray-200 animate-pulse" />
+            ) : (
+              <img
+                className="w-full rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-500"
+                src={contactImg || assets.contact_img}
+                alt="Contact Us"
+              />
+            )}
           </div>
 
           {/* CONTENT */}
