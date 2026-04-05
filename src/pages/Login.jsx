@@ -250,7 +250,8 @@ const Login = () => {
       )}
 
       <div className="w-full flex justify-between text-sm mt-3">
-        {currentState === "Login" && (
+        {/* HIDDEN: Forgot Password – re-enable when needed */}
+        {false && currentState === "Login" && (
           <p
             onClick={() => setCurrentState("Forgot Password")}
             className="cursor-pointer text-gray-600 hover:underline"
@@ -258,7 +259,7 @@ const Login = () => {
             Forgot your Password?
           </p>
         )}
-        {(currentState === "Forgot Password" || currentState === "Reset Password") && (
+        {false && (currentState === "Forgot Password" || currentState === "Reset Password") && (
           <p
             onClick={() => setCurrentState("Login")}
             className="cursor-pointer text-gray-600 hover:underline"
