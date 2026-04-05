@@ -26,15 +26,11 @@ const Login = () => {
 
     if (currentState === "Sign Up") {
       if (!name.trim()) newErrors.name = "Name is required.";
-      if (!shopName.trim()) newErrors.shopName = "Shop name is required.";
       if (!mobile.trim() || !/^\+?[0-9]{10,15}$/.test(mobile.replace(/\s+/g, ""))) {
         newErrors.mobile = "Enter a valid mobile number.";
       }
       if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         newErrors.email = "Enter a valid email address.";
-      }
-      if (password.length < 8) {
-        newErrors.password = "Password must be at least 8 characters.";
       }
     }
 
@@ -59,21 +55,15 @@ const Login = () => {
 
       setLoading(true);
       if (currentState === "Sign Up") {
-        const res = await axios.post(`${backendUrl}/api/user/register`, {
+        const res = await axios.post(`${backendUrl}/api/signup-request/create`, {
           name,
           email,
-          password,
           mobile,
-          shopName, // ✅ send shopName
         });
 
         if (res.data.success) {
-          // Flag this session as a brand new registration so ShopContext knows NOT to merge old guest wishlists
-          localStorage.setItem("isNewRegistration", "true");
-
-          setToken(res.data.token);
-          localStorage.setItem("token", res.data.token);
-          toast.success("Account created successfully");
+          toast.success(res.data.message || "Request submitted!");
+          setCurrentState("Request Sent");
         } else {
           toast.error(res.data.message);
         }
@@ -163,24 +153,6 @@ const Login = () => {
         </div>
       )}
 
-      {/* ✅ Shop Name Field */}
-      {currentState === "Sign Up" && (
-        <div className="w-full relative mt-2">
-          <input
-            type="text"
-            value={shopName}
-            onChange={(e) => {
-              setShopName(e.target.value);
-              setErrors((prev) => ({ ...prev, shopName: "" }));
-            }}
-            className={`w-full px-3 py-2 border rounded-md ${errors.shopName ? 'border-red-500' : 'border-gray-800'}`}
-            placeholder="Shop Name"
-            required
-          />
-          {errors.shopName && <p className="text-red-500 text-xs mt-1 absolute">{errors.shopName}</p>}
-        </div>
-      )}
-
       {/* ✅ Mobile Field */}
       {currentState === "Sign Up" && (
         <div className="w-full relative mt-2">
@@ -197,6 +169,14 @@ const Login = () => {
             required
           />
           {errors.mobile && <p className="text-red-500 text-xs mt-1 absolute">{errors.mobile}</p>}
+        </div>
+      )}
+
+      {/* Request Sent confirmation */}
+      {currentState === "Request Sent" && (
+        <div className="w-full text-center py-6">
+          <p className="text-green-600 font-medium text-base mb-2">Your signup request has been submitted!</p>
+          <p className="text-gray-500 text-sm">The admin will review your request and create your account. You will be able to log in once your account is approved.</p>
         </div>
       )}
 
@@ -243,7 +223,7 @@ const Login = () => {
       )}
 
       {/* ✅ Password with Show/Hide */}
-      {(currentState === "Login" || currentState === "Sign Up" || currentState === "Reset Password") && (
+      {(currentState === "Login" || currentState === "Reset Password") && (
         <div className="w-full relative mt-2">
           <div className="relative">
             <input
@@ -294,7 +274,7 @@ const Login = () => {
           >
             Create account
           </p>
-        ) : currentState === "Sign Up" ? (
+        ) : currentState === "Sign Up" || currentState === "Request Sent" ? (
           <p
             onClick={() => setCurrentState("Login")}
             className="cursor-pointer text-gray-600 hover:underline"
@@ -304,22 +284,24 @@ const Login = () => {
         ) : null}
       </div>
 
-      <button
-        disabled={loading}
-        className="bg-black text-white font-light px-8 py-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-      >
-        {loading && (
-          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        )}
-        {loading ? "Please wait..." : (
-          currentState === "Login" ? "Sign In" :
-            currentState === "Sign Up" ? "Sign Up" :
-              currentState === "Forgot Password" ? "Send OTP" : "Reset Password"
-        )}
-      </button>
+      {currentState !== "Request Sent" && (
+        <button
+          disabled={loading}
+          className="bg-black text-white font-light px-8 py-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {loading && (
+            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          )}
+          {loading ? "Please wait..." : (
+            currentState === "Login" ? "Sign In" :
+              currentState === "Sign Up" ? "Submit Request" :
+                currentState === "Forgot Password" ? "Send OTP" : "Reset Password"
+          )}
+        </button>
+      )}
     </form>
   );
 };
