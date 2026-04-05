@@ -11,6 +11,9 @@ const sortSizes = (sizes) => [...(sizes || [])].sort((a, b) => SIZE_ORDER.indexO
 const ProductCard = ({ item, variant, tag }) => {
     const { currency, getProductDiscount, addToCart, addToWishlist, removeFromWishlist, isInWishlist, token, navigate } = useContext(ShopContext);
 
+    // Client-side guard – hidden variants should already be stripped by the API
+    if (variant?.hidden) return null;
+
     const isWished = isInWishlist(item._id, variant.color);
 
     const discount = getProductDiscount(item);
