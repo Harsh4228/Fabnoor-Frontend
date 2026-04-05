@@ -74,18 +74,22 @@ function Navbar() {
               alt="Search"
             />
 
-            {/* Wishlist */}
+            {/* Wishlist – logged-in only */}
+            {token && (
             <Link to="/wishlist">
               <FaRegHeart size={22} />
             </Link>
+            )}
 
-            {/* Cart */}
+            {/* Cart – logged-in only */}
+            {token && (
             <Link to="/cart" className="relative">
               <img src={assets.cart_icon} className="w-5" alt="Cart" />
               <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full">
                 {getCartItems()}
               </span>
             </Link>
+            )}
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ const ProductItem = ({ id, name, price, image, variants }) => {
     addToWishlist,
     removeFromWishlist,
     isInWishlist,
+    token,
   } = useContext(ShopContext);
 
   // 👉 Default variant (first color + first size)
@@ -46,7 +47,8 @@ const ProductItem = ({ id, name, price, image, variants }) => {
       to={`/product/${id}`}
       className="border rounded-lg overflow-hidden block hover:shadow-lg transition relative"
     >
-      {/* ❤️ Wishlist Icon */}
+      {/* ❤️ Wishlist Icon – only for logged-in users */}
+      {token && (
       <button
         onClick={handleWishlist}
         className="absolute top-2 right-2 z-10 bg-white p-2 rounded-full shadow"
@@ -57,6 +59,7 @@ const ProductItem = ({ id, name, price, image, variants }) => {
           <FaRegHeart className="text-gray-600" />
         )}
       </button>
+      )}
 
       {/* Image */}
       <div className="w-full aspect-[3/4] bg-gray-100">
@@ -73,7 +76,11 @@ const ProductItem = ({ id, name, price, image, variants }) => {
       {/* Info */}
       <div className="p-3 text-center">
         <p className="text-sm font-medium truncate">{name}</p>
-        <p className="font-semibold">₹{price}</p>
+        {token ? (
+          <p className="font-semibold">₹{price}</p>
+        ) : (
+          <p className="text-xs text-gray-400 italic">Login to see price</p>
+        )}
       </div>
     </Link>
   );

@@ -9,7 +9,7 @@ const SIZE_ORDER = ["S", "M", "L", "XL", "XXL", "XXXL", "4XL", "5XL", "6XL", "7X
 const sortSizes = (sizes) => [...(sizes || [])].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b));
 
 const ProductCard = ({ item, variant, tag }) => {
-    const { currency, getProductDiscount, addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useContext(ShopContext);
+    const { currency, getProductDiscount, addToCart, addToWishlist, removeFromWishlist, isInWishlist, token, navigate } = useContext(ShopContext);
 
     const isWished = isInWishlist(item._id, variant.color);
 
@@ -66,7 +66,8 @@ const ProductCard = ({ item, variant, tag }) => {
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                 />
                 
-                {/* Wishlist Button */}
+                {/* Wishlist Button – logged-in only */}
+                {token && (
                 <button
                     onClick={handleWishlist}
                     className="absolute bottom-2 right-2 z-20 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:scale-110 transition-transform duration-300"
@@ -79,6 +80,7 @@ const ProductCard = ({ item, variant, tag }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
                 </button>
+                )}
 
                 {/* Out of Stock Overlay */}
                 {variant.stock === 0 && (
@@ -89,14 +91,14 @@ const ProductCard = ({ item, variant, tag }) => {
                     </div>
                 )}
                 
-                {/* Badges */}
+                {/* Badges – discount % only for logged-in users */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1 z-20">
                     {tag && (
                         <span className="bg-rose-500 text-white text-[9px] md:text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider w-fit">
                             {tag}
                         </span>
                     )}
-                    {discount > 0 && (
+                    {token && discount > 0 && (
                         <span className="bg-[#e53e3e] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider w-fit">
                             {discount}% OFF
                         </span>
@@ -113,42 +115,54 @@ const ProductCard = ({ item, variant, tag }) => {
                     </h3>
                 </Link>
 
-                {/* Sizes */}
-                <p className="text-xs text-gray-400 font-normal mb-0.5">
-                    {sizes.join(', ')}
-                </p>
+                {token ? (
+                  <>
+                    {/* Sizes */}
+                    <p className="text-xs text-gray-400 font-normal mb-0.5">
+                        {sizes.join(', ')}
+                    </p>
 
-                {/* Price Display - Above Buttons */}
-                <div className="flex items-center gap-2 mb-3">
-                    <span className="text-base md:text-lg font-bold text-gray-800">
-                        {currency} {formatNumber(discountedPrice)}
-                    </span>
-                    {discount > 0 && (
-                        <span className="text-[10px] md:text-xs text-gray-400 line-through">
-                            {currency} {formatNumber(perPiecePrice)}
+                    {/* Price Display */}
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base md:text-lg font-bold text-gray-800">
+                            {currency} {formatNumber(discountedPrice)}
                         </span>
-                    )}
-                </div>
-                
-                {/* Buttons Section - Responsive Stack */}
-                <div className="mt-auto flex flex-col gap-2">
-                    <button 
-                        onClick={handleAddToCartClick}
-                        className="w-full bg-[#2d3436] hover:bg-black text-white py-2 px-3 rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
-                    >
-                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                        </svg>
-                        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide whitespace-nowrap">Add To Cart</span>
-                    </button>
-                    <button 
-                        onClick={handleWhatsAppInquiry}
-                        className="w-full bg-[#25D366] hover:bg-[#1faa53] text-white py-2 px-3 rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
-                    >
-                        <FaWhatsapp size={14} className="flex-shrink-0" />
-                        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide whitespace-nowrap">Inquiry Now</span>
-                    </button>
-                </div>
+                        {discount > 0 && (
+                            <span className="text-[10px] md:text-xs text-gray-400 line-through">
+                                {currency} {formatNumber(perPiecePrice)}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="mt-auto flex flex-col gap-2">
+                        <button
+                            onClick={handleAddToCartClick}
+                            className="w-full bg-[#2d3436] hover:bg-black text-white py-2 px-3 rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
+                        >
+                            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide whitespace-nowrap">Add To Cart</span>
+                        </button>
+                        <button
+                            onClick={handleWhatsAppInquiry}
+                            className="w-full bg-[#25D366] hover:bg-[#1faa53] text-white py-2 px-3 rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
+                        >
+                            <FaWhatsapp size={14} className="flex-shrink-0" />
+                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide whitespace-nowrap">Inquiry Now</span>
+                        </button>
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); navigate("/login"); }}
+                    className="mt-2 w-full py-2 text-[11px] font-semibold text-gray-500 border border-gray-200 rounded hover:border-rose-400 hover:text-rose-500 transition-colors"
+                  >
+                    🔒 Login to see price
+                  </button>
+                )}
             </div>
         </div>
     );
