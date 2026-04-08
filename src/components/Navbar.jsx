@@ -14,6 +14,7 @@ function Navbar() {
     token,
     setToken,
     setCartItems,
+    globalDiscount,
   } = useContext(ShopContext);
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -27,12 +28,18 @@ function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
-      {/* ================= TOP OFFER ================= */}
-      <div className="bg-gradient-to-r from-rose-400 via-pink-400 to-rose-400 text-white text-sm py-3 overflow-hidden">
-        <div className="whitespace-nowrap animate-marquee px-4 font-medium tracking-wide">
-          ✨ GET 10% OFF ON PREPAID · APPLY CODE &quot;PRE10&quot; · BUY 2 GET 15% OFF · BUY 3 GET 20% OFF · BUY 4 GET 25% OFF ✨
+      {/* ================= TOP ANNOUNCEMENT BAR ================= */}
+      {globalDiscount?.isActive && (
+        <div className="bg-gradient-to-r from-rose-500 via-pink-500 to-rose-500 text-white text-sm py-2.5 overflow-hidden">
+          <div className="flex whitespace-nowrap animate-marquee font-semibold tracking-wide">
+            {[...Array(4)].map((_, i) => (
+              <span key={i} className="px-8">
+                🎉 STORE-WIDE {globalDiscount.discountPercentage}% OFF — Limited Time! &nbsp;·&nbsp; Shop Now &amp; Save {globalDiscount.discountPercentage}% on Everything &nbsp;·&nbsp; Use Code Not Required — Discount Applied Automatically ✨
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ================= LOGO + ICONS ================= */}
       <div className="border-b border-gray-100">
