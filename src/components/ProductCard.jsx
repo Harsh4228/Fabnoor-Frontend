@@ -31,13 +31,11 @@ const ProductCard = ({ item, variant, tag }) => {
         const rawNumber = import.meta.env.VITE_WHATSAPP_NUMBER || "919979624404";
         const phoneNumber = rawNumber.replace(/\D/g, ''); 
 
-        const message = `Hi, I'm interested in this product:
-*Name:* ${item.name}
-*Color:* ${variant.color || 'N/A'}
-*Code:* ${variant.code || 'N/A'}
-*Sizes:* ${sizes.join(', ')}
-*Price:* ${currency}${formatNumber(discountedPrice)}
-*Link:* ${window.location.origin}${linkTo}`;
+        let message = `Hi, I'm interested in this product:\n*Name:* ${item.name}\n*Color:* ${variant.color || 'N/A'}\n*Code:* ${variant.code || 'N/A'}\n*Sizes:* ${sizes.join(', ')}`;
+        if (token) {
+            message += `\n*Price:* ${currency}${formatNumber(discountedPrice)}`;
+        }
+        message += `\n*Link:* ${window.location.origin}${linkTo}`;
 
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
@@ -158,13 +156,22 @@ const ProductCard = ({ item, variant, tag }) => {
                     </div>
                   </>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); navigate("/login"); }}
-                    className="mt-2 w-full py-2 text-[11px] font-semibold text-gray-500 border border-gray-200 rounded hover:border-rose-400 hover:text-rose-500 transition-colors"
-                  >
-                    🔒 Login to see price
-                  </button>
+                  <div className="mt-auto flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); navigate("/login"); }}
+                      className="w-full py-2 text-[11px] font-semibold text-gray-500 border border-gray-200 rounded hover:border-rose-400 hover:text-rose-500 transition-colors"
+                    >
+                      🔒 Login to see price
+                    </button>
+                    <button
+                      onClick={handleWhatsAppInquiry}
+                      className="w-full bg-[#25D366] hover:bg-[#1faa53] text-white py-2 px-3 rounded flex items-center justify-center gap-2 transition-all duration-300 shadow-sm"
+                    >
+                      <FaWhatsapp size={14} className="flex-shrink-0" />
+                      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide whitespace-nowrap">Inquiry Now</span>
+                    </button>
+                  </div>
                 )}
             </div>
         </div>

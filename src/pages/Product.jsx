@@ -248,6 +248,20 @@ const Product = () => {
     navigate("/place-order");
   };
 
+  const handleWhatsAppInquiry = () => {
+    const phone = (import.meta.env.VITE_WHATSAPP_NUMBER || "919979624404").replace(/\D/g, "");
+    let msg = `Hi! I'm interested in this product:\n\n*${productData.name}*\nColor: ${selectedVariant.color}`;
+    if (selectedVariant.fabric) msg += `\nFabric: ${selectedVariant.fabric}`;
+    msg += `\nSizes: ${sortSizes(selectedVariant.sizes).join(", ")}`;
+    if (token) {
+      msg += `\n\nPrice: \u20B9${formatNumber(discountedPerPiece)} per piece`;
+      msg += `\nPack Total: \u20B9${formatNumber(discountedPack)}`;
+      if (discount > 0) msg += ` (${discount}% off)`;
+    }
+    msg += `\n\nPlease share more details.`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
   const handleDoubleClick = () => {
     if (zoom === 1) setZoom(2.5);
     else {
@@ -505,6 +519,19 @@ const Product = () => {
                     className="mt-1 px-6 py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-gray-800 transition"
                   >
                     Login / Sign Up
+                  </button>
+                  <div className="flex items-center gap-2 w-full mt-1">
+                    <div className="h-px flex-1 bg-gray-200" />
+                    <span className="text-xs text-gray-400">or</span>
+                    <div className="h-px flex-1 bg-gray-200" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleWhatsAppInquiry}
+                    className="w-full py-2.5 rounded-xl font-bold text-sm border-2 border-[#25D366] text-[#25D366] hover:bg-[#f0fdf4] flex items-center justify-center gap-2 transition-all duration-200"
+                  >
+                    <FaWhatsapp className="text-base" />
+                    INQUIRE ON WHATSAPP
                   </button>
                 </div>
               )}
