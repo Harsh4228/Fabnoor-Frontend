@@ -26,6 +26,7 @@ export const ShopContextProvider = ({ children }) => {
   const [globalDiscount, setGlobalDiscount] = useState({
     discountPercentage: 0,
     isActive: false,
+    lowStockThreshold: 5,
   });
 
   // ✅ SIDE CART DRAWER STATE
@@ -893,6 +894,7 @@ export const ShopContextProvider = ({ children }) => {
         // discount
         globalDiscount,
         getProductDiscount,
+        lowStockThreshold: globalDiscount.lowStockThreshold ?? 5,
       }}
     >
       {children}

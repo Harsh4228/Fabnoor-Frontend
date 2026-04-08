@@ -60,6 +60,7 @@ const Product = () => {
     getProductDiscount,
     addProductsToCache,
     token,
+    lowStockThreshold,
   } = useContext(ShopContext);
 
   const [productData, setProductData] = useState(null);
@@ -350,7 +351,7 @@ const Product = () => {
                   )}
                 </button>
 
-                {stock > 0 && stock < 6 && (
+                {stock > 0 && stock < lowStockThreshold && (
                   <span className="absolute bottom-10 left-3 z-10 bg-amber-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow pointer-events-none">
                     Only {stock} left!
                   </span>
@@ -656,7 +657,7 @@ const Product = () => {
                       Currently Unavailable
                     </span>
                   </div>
-                ) : stock < 6 ? (
+                ) : stock < lowStockThreshold ? (
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0 animate-pulse" />
                     <span className="text-amber-600 font-semibold text-sm">
