@@ -19,7 +19,7 @@
             
             <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg p-6 mb-6">
               <p className="text-gray-700 font-medium">
-                All transactions are secured and encrypted to ensure safety.
+                All transactions are secured to ensure safety.
               </p>
             </div>
 
