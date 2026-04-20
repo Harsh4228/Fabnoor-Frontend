@@ -200,6 +200,11 @@ const Product = () => {
   const images = selectedVariant.images || [];
 
   const handleAddToCart = () => {
+    if (!token) {
+      toast.error("Login is required");
+      navigate("/login");
+      return;
+    }
     if (stock <= 0) {
       toast.error("Out of stock");
       return;
@@ -214,6 +219,11 @@ const Product = () => {
   };
 
   const handleBuyNow = async () => {
+    if (!token) {
+      toast.error("Login is required");
+      navigate("/login");
+      return;
+    }
     if (stock <= 0) {
       toast.error("Out of stock");
       return;
@@ -240,6 +250,11 @@ const Product = () => {
   };
 
   const handleWhatsAppOrder = () => {
+    if (!token) {
+      toast.error("Login is required");
+      navigate("/login");
+      return;
+    }
     addToCart(
       productData._id,
       selectedVariant.color,
@@ -250,6 +265,11 @@ const Product = () => {
   };
 
   const handleWhatsAppInquiry = () => {
+    if (!token) {
+      toast.error("Login is required");
+      navigate("/login");
+      return;
+    }
     const phone = (import.meta.env.VITE_WHATSAPP_NUMBER || "919979624404").replace(/\D/g, "");
     let msg = `Hi! I'm interested in this product:\n\n*${productData.name}*\nColor: ${selectedVariant.color}`;
     if (selectedVariant.fabric) msg += `\nFabric: ${selectedVariant.fabric}`;
@@ -507,39 +527,8 @@ const Product = () => {
 
               <div className="h-px bg-gradient-to-r from-pink-200 via-gray-200 to-transparent mb-4" />
 
-              {/* ── Guest gate ── */}
-              {!token && (
-                <div className="flex flex-col items-center gap-3 py-8 px-4 bg-gray-50 rounded-xl border border-gray-200 text-center">
-                  <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <p className="text-gray-700 font-semibold">Login to see price &amp; full product details</p>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/login")}
-                    className="mt-1 px-6 py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-gray-800 transition"
-                  >
-                    Login / Sign Up
-                  </button>
-                  <div className="flex items-center gap-2 w-full mt-1">
-                    <div className="h-px flex-1 bg-gray-200" />
-                    <span className="text-xs text-gray-400">or</span>
-                    <div className="h-px flex-1 bg-gray-200" />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleWhatsAppInquiry}
-                    className="w-full py-2.5 rounded-xl font-bold text-sm border-2 border-[#25D366] text-[#25D366] hover:bg-[#f0fdf4] flex items-center justify-center gap-2 transition-all duration-200"
-                  >
-                    <FaWhatsapp className="text-base" />
-                    INQUIRE ON WHATSAPP
-                  </button>
-                </div>
-              )}
-
-              {token && (
-                <>
-              {/* Price */}
+              {/* ── Price Block ── */}
+              {token ? (
               <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl px-4 py-3.5 mb-4 border border-pink-100">
                 <div className="flex items-end flex-wrap gap-x-2 gap-y-0.5 mb-1">
                   <span className="text-base font-bold text-pink-500 leading-none">
@@ -579,6 +568,18 @@ const Product = () => {
                   Inclusive of all taxes
                 </p>
               </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3 py-6 px-4 bg-gray-50 rounded-xl border border-gray-200 text-center mb-4">
+                  <p className="text-gray-700 font-semibold text-sm">Login to see price</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/login")}
+                    className="mt-1 px-6 py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-gray-800 transition"
+                  >
+                    Login / Sign Up
+                  </button>
+                </div>
+              )}
 
               {/* Variants */}
               <div className="mb-6">
@@ -714,13 +715,11 @@ const Product = () => {
                   </span>
                 </div>
               </div>
-                </>
-              )}
             </div>
           </div>
 
           {/* ── TABS ── */}
-          {token && <div className="mt-12">
+          <div className="mt-12">
             <div
               className="flex border-b border-gray-200 mb-6 overflow-x-auto"
               style={{ scrollbarWidth: "none" }}
@@ -958,8 +957,7 @@ const Product = () => {
                 )}
               </div>
             )}
-          </div>}
-
+          </div>
           {/* ── RELATED ── */}
           <div className="mt-16">
             <RelatedProducts
